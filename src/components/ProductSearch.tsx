@@ -18,8 +18,8 @@ interface ProductSearchProps {
 }
 
 export default function ProductSearch({
-  placeholder = 'Produkte suchen...',
-  apiUrl = 'https://hercules-product-sync.gilles-86d.workers.dev'
+  placeholder = 'Search products...',
+  apiUrl = 'https://hercules-product-sync-uk.gilles-86d.workers.dev'
 }: ProductSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);

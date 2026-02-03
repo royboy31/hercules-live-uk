@@ -9,9 +9,9 @@ const { sportarten, produkte, themen, directLinks } = menuData;
 
 // Transform to mobile menu format
 const mobileMenuItems = {
-  sportarten: { title: 'Sportarten', items: sportarten },
-  produkte: { title: 'Produkte', items: produkte },
-  themen: { title: 'Themen', items: themen },
+  sportarten: { title: 'Sports', items: sportarten },
+  produkte: { title: 'Products', items: produkte },
+  themen: { title: 'Themes', items: themen },
 };
 ---
 
@@ -31,7 +31,7 @@ const mobileMenuItems = {
           width="176"
           height="78"
         />
-        <button id="mobile-menu-close" class="close-btn" aria-label="Menu schließen">
+        <button id="mobile-menu-close" class="close-btn" aria-label="Close menu">
           <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -62,13 +62,13 @@ const mobileMenuItems = {
             <svg class="wishlist-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
-            Wunschliste
+            Wishlist
           </span>
         </a>
 
         <!-- CTA Button -->
         <div class="menu-cta">
-          <a href="/kontaktieren-sie-uns" class="cta-button">Kontakt</a>
+          <a href="/contact-us" class="cta-button">Contact</a>
         </div>
       </div>
     </div>
@@ -82,9 +82,9 @@ const mobileMenuItems = {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
-            <span>Zurück</span>
+            <span>Back</span>
           </button>
-          <button class="close-btn submenu-close" aria-label="Menu schließen">
+          <button class="close-btn submenu-close" aria-label="Close menu">
             <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -98,7 +98,7 @@ const mobileMenuItems = {
         <div class="submenu-content">
           {menu.items.map((item) => (
             <a href={item.href} class="submenu-item">
-              {item.icon_url && <img src={item.icon_url} alt={`${item.label} Kategorie Icon`} class="submenu-icon" />}
+              {item.icon_url && <img src={item.icon_url} alt={`${item.label} Category Icon`} class="submenu-icon" />}
               <span>{item.label}</span>
             </a>
           ))}

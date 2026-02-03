@@ -21,13 +21,13 @@ const getBaseUrl = () => {
 
   if (
     hostname.includes('hercules-edge-router') ||
-    hostname.includes('hercules-merchandise.de') ||
+    hostname.includes('hercules-merchandise.co.uk') ||
     hostname === 'localhost'
   ) {
     return '';
   }
 
-  return 'https://staging.hercules-merchandise.de';
+  return 'https://staging.hercules-merchandise.co.uk';
 };
 
 export default function UserSession({ type }: UserSessionProps) {

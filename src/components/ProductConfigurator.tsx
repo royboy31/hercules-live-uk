@@ -120,8 +120,8 @@ function getAddonPriceAtTierQty(addon: AddonData, selectedValue: string | string
   let total = 0;
 
   for (const name of selectedNames) {
-    // Skip "Keins" selection - it has no price
-    if (name === 'Keins') continue;
+    // Skip "None" selection - it has no price
+    if (name === 'None') continue;
 
     const option = addon.options.find(o => o.name === name);
     if (!option || !option.price_table || option.price_table.length === 0) continue;
@@ -198,7 +198,7 @@ function getInterpolatedPriceWithAddons(
   return combinedTiers[0]?.price || 0;
 }
 
-export default function ProductConfigurator({ productSlug, workerUrl = 'https://hercules-product-sync.gilles-86d.workers.dev' }: ProductConfiguratorProps) {
+export default function ProductConfigurator({ productSlug, workerUrl = 'https://hercules-product-sync-uk.gilles-86d.workers.dev' }: ProductConfiguratorProps) {
   const [config, setConfig] = useState<ProductConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -387,7 +387,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       pricePerPiece,
       totalExclVat,
       totalInclVat,
-      leadTime: matchedVariation.lead_time || '5 Wochen',
+      leadTime: matchedVariation.lead_time || '5 Weeks',
     };
   }, [matchedVariation, quantitySelected, visibleAddons, selectedAddons, config]);
 
@@ -477,20 +477,20 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
         // Small delay to let user see the cart update, then redirect
         setTimeout(() => {
           if (redirectTo === 'quote') {
-            window.location.href = '/angebotsgenerator/';
+            window.location.href = '/quote-generator/';
           } else {
-            window.location.href = '/warenkorb/';
+            window.location.href = '/cart/';
           }
         }, 500);
       } else {
-        const errorMsg = result.message || 'Ein Fehler ist aufgetreten';
-        setAddToCartError(typeof errorMsg === 'string' ? errorMsg : 'Ein Fehler ist aufgetreten');
+        const errorMsg = result.message || 'An error occurred';
+        setAddToCartError(typeof errorMsg === 'string' ? errorMsg : 'An error occurred');
         setAddToCartLoading(false);
         setLoadingAction(null);
       }
     } catch (error) {
       console.error('[ProductConfigurator] Add to cart error:', error);
-      setAddToCartError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
+      setAddToCartError('An error occurred. Please try again later.');
       setAddToCartLoading(false);
       setLoadingAction(null);
     }
@@ -501,7 +501,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     return (
       <div id="pearl-wc-steps-form">
         <div className="pearl-step-indicator">
-          <h2>Laden...</h2>
+          <h2>Loading...</h2>
         </div>
       </div>
     );
@@ -512,7 +512,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     return (
       <div id="pearl-wc-steps-form">
         <div className="pearl-step-indicator">
-          <h2>Fehler beim Laden der Konfiguration</h2>
+          <h2>Error loading configuration</h2>
           {error && <p style={{ color: '#dc3545', fontSize: '14px', marginTop: '10px' }}>{error}</p>}
           <p style={{ color: '#666', fontSize: '12px', marginTop: '5px' }}>Slug: {productSlug}</p>
         </div>
@@ -553,8 +553,8 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     <div id="pearl-wc-steps-form" className="pearl-wc-steps-form">
       {/* Step indicator - matches WordPress exactly */}
       <div className="pearl-step-indicator">
-        <h2>ERSTELLEN SIE IHR PRODUKT — SCHRITT {currentStepNum} VON {totalSteps}</h2>
-        <span>Ab {minQuantity} Stück</span>
+        <h2>CREATE YOUR PRODUCT — STEP {currentStepNum} OF {totalSteps}</h2>
+        <span>From {minQuantity} pieces</span>
       </div>
 
       {/* Attribute Steps - Only render visible attributes (excludes single default options) */}
@@ -579,7 +579,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                   </div>
                   <span className="kd-selected-val">{attr.terms.find(t => t.slug === selectedValue)?.name || selectedValue}</span>
                   <button type="button" className="kd-selected-chng-btn" onClick={(e) => { e.stopPropagation(); setMaxVisibleStep(visibleIndex); }}>
-                    Ändern
+                    Change
                   </button>
                 </>
               ) : (
@@ -634,7 +634,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     onChange={e => handleAttributeSelect(attrKey, e.target.value, visibleIndex)}
                     style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #ddd' }}
                   >
-                    <option value="">Wählen Sie eine Option</option>
+                    <option value="">Select an option</option>
                     {attr.terms.map(term => (
                       <option key={term.slug} value={term.slug}>{term.name}</option>
                     ))}
@@ -690,7 +690,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                   </div>
                   <span className="kd-selected-val">{Array.isArray(selectedValue) ? selectedValue.join(', ') : selectedValue}</span>
                   <button type="button" className="kd-selected-chng-btn" onClick={(e) => { e.stopPropagation(); setMaxVisibleStep(stepIndex); }}>
-                    Ändern
+                    Change
                   </button>
                 </>
               ) : (
@@ -743,7 +743,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     onChange={e => handleAddonSelect(addon.id, e.target.value, stepIndex)}
                     style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #ddd' }}
                   >
-                    <option value="">Wählen Sie eine Option</option>
+                    <option value="">Select an option</option>
                     {addon.options.map(option => (
                       <option key={option.name} value={option.name}>{option.name}</option>
                     ))}
@@ -753,16 +753,16 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {/* Multiple Choice (checkboxes) for addons like Zubehör - auto-advances on selection */}
                 {addon.display_type === 'multiple_choise' && (() => {
                   const currentSelected = Array.isArray(selectedValue) ? selectedValue : (selectedValue ? [selectedValue] : []);
-                  const isNoneChecked = currentSelected.includes('Keins');
+                  const isNoneChecked = currentSelected.includes('None');
 
                   const handleCheckboxChange = (value: string, checked: boolean) => {
                     let newSelected: string[];
-                    if (value === 'Keins') {
-                      // "Keins" clears all other selections and advances immediately
-                      newSelected = checked ? ['Keins'] : [];
+                    if (value === 'None') {
+                      // "None" clears all other selections and advances immediately
+                      newSelected = checked ? ['None'] : [];
                     } else {
-                      // Remove 'Keins' if selecting an actual option
-                      const withoutNone = currentSelected.filter(v => v !== 'Keins');
+                      // Remove 'None' if selecting an actual option
+                      const withoutNone = currentSelected.filter(v => v !== 'None');
                       if (checked) {
                         newSelected = [...withoutNone, value];
                       } else {
@@ -778,17 +778,17 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
                   return (
                     <div className="kd-step-choises">
-                      {/* "Keins" (None) checkbox - always first */}
+                      {/* "None" (None) checkbox - always first */}
                       <label style={{ display: 'block', marginBottom: '8px' }}>
                         <input
                           type="checkbox"
                           name={String(addon.id)}
-                          value="Keins"
+                          value="None"
                           checked={isNoneChecked}
-                          onChange={(e) => handleCheckboxChange('Keins', e.target.checked)}
+                          onChange={(e) => handleCheckboxChange('None', e.target.checked)}
                           style={{ marginRight: '8px' }}
                         />
-                        Keins
+                        None
                       </label>
                       {/* Dynamic options from database */}
                       {addon.options.map((option, index) => {
@@ -849,16 +849,16 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             {maxVisibleStep !== quantityStepIndex && quantitySelected > 0 ? (
               <>
                 <div className="kd-prod-attribute-title-wrapper">
-                  <span>{quantityStepIndex + 1}: Ihre Menge</span>
+                  <span>{quantityStepIndex + 1}: Your Quantity</span>
                 </div>
                 <span className="kd-selected-val">{quantitySelected}</span>
                 <button type="button" className="kd-selected-chng-btn" onClick={(e) => { e.stopPropagation(); setMaxVisibleStep(quantityStepIndex); }}>
-                  Ändern
+                  Change
                 </button>
               </>
             ) : (
               <div className="kd-prod-attribute-title-wrapper">
-                <span>{quantityStepIndex + 1}: Wählen Sie Ihre Stückzahl<br />(Die angezeigten Preise sind netto)</span>
+                <span>{quantityStepIndex + 1}: Select your quantity<br />(Prices shown are net)</span>
               </div>
             )}
           </h3>
@@ -903,7 +903,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     </div>
                     <div className="kd-radio-meta">
                       {savings > 0 && (
-                        <span className="save">Sparen Sie {savings}%</span>
+                        <span className="save">Save {savings}%</span>
                       )}
                       <span>{currencySymbol}{totalPrice.toFixed(2).replace('.', ',')}</span>
                     </div>
@@ -924,14 +924,14 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 </div>
                 <div className="kd-radio-meta kd-contact-meta">
                   <button type="button" className="step-contact" onClick={() => setShowQuantityPopup(true)}>
-                    KONTAKTIEREN SIE UNS
+                    CONTACT US
                   </button>
                 </div>
               </label>
 
               {/* Custom quantity slider */}
               <div className="range-wrapper">
-                <h4 className="specific-qty-title">Oder geben Sie Ihre genaue Stückzahl an</h4>
+                <h4 className="specific-qty-title">Or specify your exact quantity</h4>
 
                 <div className="kd-range-slider-container">
                   <div
@@ -985,7 +985,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                   <button type="button" className="kd-round-btn" onClick={() => setTempQuantity(prev => Math.min(quantityRange.max, prev + 1))}>+</button>
                   <button type="button" className="kd-round-btn" onClick={() => setTempQuantity(prev => Math.max(quantityRange.min, prev - 1))}>-</button>
                   <button type="button" className="kd-verify-qty-btn" onClick={handleQuantityConfirm}>
-                    BESTÄTIGEN
+                    CONFIRM
                   </button>
                 </div>
               </div>
@@ -997,32 +997,32 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       {/* Summary */}
       {priceInfo && quantitySelected > 0 && (
         <div className="variation-summary">
-          <h3 className="your-offer-title">{quantityStepIndex + 2}. Ihr Angebot</h3>
+          <h3 className="your-offer-title">{quantityStepIndex + 2}. Your Quote</h3>
           <table className="offer-table">
             <tbody>
               <tr>
-                <td>Versand Deutschland oder Österreich</td>
-                <td className="kd-free-value">Kostenlos</td>
+                <td>Shipping to UK</td>
+                <td className="kd-free-value">Free</td>
               </tr>
               <tr>
-                <td>Einrichtungsgebühr</td>
-                <td className="kd-free-value">Kostenlos</td>
+                <td>Setup Fee</td>
+                <td className="kd-free-value">Free</td>
               </tr>
               <tr>
-                <td>Preis netto pro Stück</td>
-                <td className="kd-price-value">{currencySymbol}{priceInfo.pricePerPiece.toFixed(2).replace('.', ',')}</td>
+                <td>Price per unit (net)</td>
+                <td className="kd-price-value">{currencySymbol}{priceInfo.pricePerPiece.toFixed(2)}</td>
               </tr>
               <tr>
-                <td>Gesamt (netto)</td>
-                <td className="kd-total-value">{currencySymbol}{priceInfo.totalExclVat.toFixed(2).replace('.', ',')}</td>
+                <td>Total (net)</td>
+                <td className="kd-total-value">{currencySymbol}{priceInfo.totalExclVat.toFixed(2)}</td>
               </tr>
               <tr>
-                <td>Gesamt (brutto)</td>
-                <td>{currencySymbol}{priceInfo.totalInclVat.toFixed(2).replace('.', ',')}</td>
+                <td>Total (gross)</td>
+                <td>{currencySymbol}{priceInfo.totalInclVat.toFixed(2)}</td>
               </tr>
               <tr>
                 <td className="kd-lieferzeit-cell">
-                  Lieferzeit
+                  Delivery Time
                   <span
                     className="kd-tooltip-trigger"
                     onMouseEnter={() => setShowDeliveryTooltip(true)}
@@ -1031,7 +1031,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     ?
                     {showDeliveryTooltip && (
                       <span className="kd-tooltip-content">
-                        Die Lieferzeit beginnt nach Freigabe des Designs und Zahlungseingang. Bei Expresslieferung kontaktieren Sie uns bitte.
+                        Delivery time starts after design approval and payment receipt. For express delivery please contact us.
                       </span>
                     )}
                   </span>
@@ -1047,7 +1047,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                       onClick={() => setShowExpressPopup(true)}
                       className="kd-express-link"
                     >
-                      Ich benötige eine Expresslieferung
+                      I need express delivery
                     </button>
                   </span>
                 </td>
@@ -1081,9 +1081,9 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('quote')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Wird verarbeitet...' : 'Erstellen Sie Ihr Angebot'}
+            {addToCartLoading ? 'Processing...' : 'Create your quote'}
           </button>
-          <small>Wir senden Ihnen ein PDF zu</small>
+          <small>We will send you a PDF</small>
         </div>
         <div className="kd-single-action-btn">
           <button
@@ -1092,9 +1092,9 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('cart')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Wird verarbeitet...' : 'In den Warenkorb'}
+            {addToCartLoading ? 'Processing...' : 'Add to cart'}
           </button>
-          <small>Wenn Sie bereit sind zu bestellen</small>
+          <small>When you are ready to order</small>
         </div>
       </div>
 
@@ -1132,22 +1132,22 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             <div className="kd-loading-spinner"></div>
             <p className="kd-loading-text">
               {loadingAction === 'quote'
-                ? 'Ihr Angebot wird erstellt...'
-                : 'Wird zum Warenkorb hinzugefügt...'}
+                ? 'Creating your quote...'
+                : 'Adding to cart...'}
             </p>
-            <p className="kd-loading-subtext">Bitte warten Sie einen Moment</p>
+            <p className="kd-loading-subtext">Please wait a moment</p>
           </div>
         </div>
       )}
     </div>
 
-    {/* Question Section - Hast du eine Frage? (Separate box) */}
+    {/* Question Section */}
     <div className="kd-question-box">
-      <h3>HAST DU EINE FRAGE?</h3>
+      <h3>DO YOU HAVE A QUESTION?</h3>
       <div className="kd-question-buttons">
         <ContactFormPopup
           triggerType="button"
-          triggerText="KONTAKTIEREN SIE UNS"
+          triggerText="CONTACT US"
           triggerClassName="kd-btn-contact"
         />
         <a href="#faq" className="kd-btn-faq" onClick={(e) => {
@@ -1156,11 +1156,11 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
           if (faqSection) {
             faqSection.scrollIntoView({ behavior: 'smooth' });
           }
-        }}>SIEHE FAQ</a>
+        }}>SEE FAQ</a>
       </div>
     </div>
 
-    {/* Vision Section - Verwirklichen Sie Ihre Vision */}
+    {/* Vision Section */}
     <div className="kd-vision-section">
       <div className="kd-vision-images">
         <picture>
@@ -1169,7 +1169,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
         </picture>
       </div>
       <div className="kd-vision-content">
-        <h3>VERWIRKLICHEN SIE IHRE VISION <span style={{ color: '#469ADC' }}>ERHALTEN SIE EIN INDIVIDUELLES DESIGN!</span></h3>
+        <h3>BRING YOUR VISION TO LIFE <span style={{ color: '#469ADC' }}>GET A CUSTOM DESIGN!</span></h3>
         <a
           href="#design-section"
           className="kd-btn-design"
@@ -1180,7 +1180,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
               designSection.scrollIntoView({ behavior: 'smooth' });
             }
           }}
-        >GEHEN SIE ZUM DESIGN-BEREICH</a>
+        >GO TO DESIGN SECTION</a>
       </div>
     </div>
     </>

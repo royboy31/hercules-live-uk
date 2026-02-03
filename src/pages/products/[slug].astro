@@ -16,7 +16,7 @@ import {
   stripHtml
 } from '../../config/seo';
 
-const WORKER_URL = 'https://hercules-product-sync.gilles-86d.workers.dev';
+const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
 
 // Get product slug from URL
 const { slug } = Astro.params;
@@ -141,7 +141,7 @@ if (product) {
 
 // Generate static paths for all products
 export async function getStaticPaths() {
-  const WORKER_URL = 'https://hercules-product-sync.gilles-86d.workers.dev';
+  const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
 
   try {
     const response = await fetch(`${WORKER_URL}/products`);
@@ -486,7 +486,7 @@ if (product) {
                   <li class="related-product-item">
                     <a href={`/products/${relProduct.slug}`} class="related-product-link">
                       <img
-                        src={`https://hercules-product-sync.gilles-86d.workers.dev/image/${relProduct.slug}/0`}
+                        src={`https://hercules-product-sync-uk.gilles-86d.workers.dev/image/${relProduct.slug}/0`}
                         alt={relProduct.name}
                         loading="lazy"
                         decoding="async"

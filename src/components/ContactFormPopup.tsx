@@ -17,7 +17,7 @@ interface FormData {
 
 export default function ContactFormPopup({
   triggerType = 'button',
-  triggerText = 'Kontakt',
+  triggerText = 'Contact',
   triggerClassName = ''
 }: ContactFormPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,7 +86,7 @@ export default function ContactFormPopup({
 
     const validFiles = files.filter(file => {
       if (file.size > maxSize) {
-        setError(`Datei "${file.name}" ist zu groß. Maximale Größe: 10MB`);
+        setError(`File "${file.name}" is too large. Maximum size: 10MB`);
         return false;
       }
       return true;
@@ -117,8 +117,8 @@ export default function ContactFormPopup({
       submitData.append('email', formData.email);
       submitData.append('phone', formData.phone);
       submitData.append('message', formData.message);
-      submitData.append('date', new Date().toLocaleDateString('de-DE'));
-      submitData.append('time', new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
+      submitData.append('date', new Date().toLocaleDateString('en-GB'));
+      submitData.append('time', new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
       submitData.append('pageTitle', document.title);
       submitData.append('pageUrl', window.location.href);
 
@@ -147,7 +147,7 @@ export default function ContactFormPopup({
       setSubmittedData({ ...formData });
       setIsSuccess(true);
     } catch (err) {
-      setError('Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.');
+      setError('An error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -163,7 +163,7 @@ export default function ContactFormPopup({
           type="button"
           onClick={openPopup}
           className={`contact-trigger-icon ${baseClasses}`}
-          aria-label="Kontakt"
+          aria-label="Contact"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 512 512" fill="currentColor">
             <path d="M464 64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm0 48v40.805c-22.422 18.259-58.168 46.651-134.587 106.49-16.841 13.247-50.201 45.072-73.413 44.701-23.208.375-56.579-31.459-73.413-44.701C106.18 199.465 70.425 171.067 48 152.805V112h416zM48 400V214.398c22.914 18.251 55.409 43.862 104.938 82.646 21.857 17.205 60.134 55.186 103.062 54.955 42.717.231 80.509-37.199 103.053-54.947 49.528-38.783 82.032-64.401 104.947-82.653V400H48z"/>
@@ -219,7 +219,7 @@ export default function ContactFormPopup({
               type="button"
               onClick={closePopup}
               className="contact-popup-close"
-              aria-label="Schließen"
+              aria-label="Close"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -235,7 +235,7 @@ export default function ContactFormPopup({
                   <div className="contact-form-row">
                     <div className="contact-field contact-field-half">
                       <label htmlFor="contact-name" className="contact-label">
-                        Nach- und Vorname <span className="required">*</span>
+                        Full Name <span className="required">*</span>
                       </label>
                       <input
                         type="text"
@@ -243,7 +243,7 @@ export default function ContactFormPopup({
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="Nach- und Vorname"
+                        placeholder="Full Name"
                         required
                         className="contact-input"
                       />
@@ -268,7 +268,7 @@ export default function ContactFormPopup({
                   {/* Phone */}
                   <div className="contact-field">
                     <label htmlFor="contact-phone" className="contact-label">
-                      Telefonnummer
+                      Phone Number
                     </label>
                     <input
                       type="tel"
@@ -276,7 +276,7 @@ export default function ContactFormPopup({
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      placeholder="Telefonnummer"
+                      placeholder="Phone Number"
                       className="contact-input"
                     />
                   </div>
@@ -284,14 +284,14 @@ export default function ContactFormPopup({
                   {/* Message */}
                   <div className="contact-field">
                     <label htmlFor="contact-message" className="contact-label">
-                      Nachricht
+                      Message
                     </label>
                     <textarea
                       id="contact-message"
                       name="message"
                       value={formData.message}
                       onChange={handleInputChange}
-                      placeholder="Nachricht"
+                      placeholder="Message"
                       rows={4}
                       className="contact-textarea"
                     />
@@ -300,7 +300,7 @@ export default function ContactFormPopup({
                   {/* File Upload */}
                   <div className="contact-field">
                     <label htmlFor="contact-files" className="contact-label">
-                      Datei hochladen
+                      Upload File
                     </label>
                     <div className="contact-file-upload">
                       <input
@@ -318,9 +318,9 @@ export default function ContactFormPopup({
                           <polyline points="17 8 12 3 7 8" />
                           <line x1="12" y1="3" x2="12" y2="15" />
                         </svg>
-                        <span>Dateien auswählen</span>
+                        <span>Select Files</span>
                       </label>
-                      <span className="contact-file-hint">Max. 10MB pro Datei</span>
+                      <span className="contact-file-hint">Max. 10MB per file</span>
                     </div>
 
                     {/* File List */}
@@ -333,7 +333,7 @@ export default function ContactFormPopup({
                               type="button"
                               onClick={() => removeFile(index)}
                               className="contact-file-remove"
-                              aria-label={`${file.name} entfernen`}
+                              aria-label={`Remove ${file.name}`}
                             >
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -364,10 +364,10 @@ export default function ContactFormPopup({
                         <svg className="contact-spinner" width="20" height="20" viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray="31.416" strokeDashoffset="10" />
                         </svg>
-                        <span>Wird gesendet...</span>
+                        <span>Sending...</span>
                       </>
                     ) : (
-                      <span>Senden</span>
+                      <span>Send</span>
                     )}
                   </button>
                 </div>
@@ -382,16 +382,16 @@ export default function ContactFormPopup({
                   </svg>
                 </div>
                 <h2 className="contact-success-title">
-                  Vielen Dank, dass Sie sich<br />an uns gewendet haben!
+                  Thank you for<br />contacting us!
                 </h2>
                 <p className="contact-success-text">
-                  Ihre Anfrage wurde erfolgreich übermittelt. Einer unserer Mitarbeiter wird sich so schnell wie möglich bei Ihnen melden.
+                  Your enquiry has been successfully submitted. One of our team members will get back to you as soon as possible.
                 </p>
                 {submittedData && (
                   <div className="contact-success-details">
                     <p><strong>Name:</strong> {submittedData.name}</p>
                     <p><strong>Email:</strong> {submittedData.email}</p>
-                    {submittedData.phone && <p><strong>Telefon:</strong> {submittedData.phone}</p>}
+                    {submittedData.phone && <p><strong>Phone:</strong> {submittedData.phone}</p>}
                   </div>
                 )}
                 <button
@@ -399,7 +399,7 @@ export default function ContactFormPopup({
                   onClick={closePopup}
                   className="contact-success-close"
                 >
-                  Schließen
+                  Close
                 </button>
               </div>
             )}
