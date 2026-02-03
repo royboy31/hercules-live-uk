@@ -1,23 +1,23 @@
-// SEO Configuration for Hercules Merchandise DE
+// SEO Configuration for Hercules Merchandise UK
 // Based on Rank Math settings export
 
 export const siteConfig = {
   // Site Info
-  siteName: 'Hercules Merchandise DE',
-  siteUrl: 'https://hercules-merchandise.de',
+  siteName: 'Hercules Merchandise UK',
+  siteUrl: 'https://hercules-merchandise.co.uk',
   titleSeparator: '-',
-  defaultDescription: 'Personalisierte Sportbekleidung, Fanschals und Merchandise für Vereine und Teams. Made in Europe.',
-  locale: 'de_DE',
-  language: 'de',
+  defaultDescription: 'Personalised sportswear, fan scarves and merchandise for clubs and teams. Made in Europe.',
+  locale: 'en_GB',
+  language: 'en',
 
   // Organization/Business Info
   organization: {
-    name: 'Hercules Merchandise DE',
+    name: 'Hercules Merchandise UK',
     legalName: 'Hercules Merchandise',
     type: 'Organization',
-    email: 'info@hercules-merchandise.de',
-    phone: '+49 8001833745',
-    // No physical address for German site schema
+    email: 'info@hercules-merchandise.co.uk',
+    phone: '+44 800 183 3745',
+    // No physical address for UK site schema
     address: null,
     openingHours: [
       { day: 'Monday', time: '09:00-17:00' },
@@ -66,11 +66,11 @@ export const titleTemplates = {
   category: (term: string) => `${term} ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
   blogPost: (title: string) => `${title} ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
   blogArchive: (page?: number) => page && page > 1
-    ? `Blog Seite ${page} ${siteConfig.titleSeparator} ${siteConfig.siteName}`
+    ? `Blog Page ${page} ${siteConfig.titleSeparator} ${siteConfig.siteName}`
     : `Blog ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
   page: (title: string) => `${title} ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
-  search: (query: string) => `Suche: ${query} ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
-  notFound: `Seite nicht gefunden ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
+  search: (query: string) => `Search: ${query} ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
+  notFound: `Page not found ${siteConfig.titleSeparator} ${siteConfig.siteName}`,
 };
 
 // Meta description templates
@@ -91,12 +91,9 @@ export const robotsConfig = {
 // Pages that should be noindex
 export const noindexPages = [
   '/search',
-  '/warenkorb',
-  '/kasse',
+  '/cart',
+  '/checkout',
   '/my-account',
-  '/warenkorb',
-  '/kasse',
-  '/mein-konto',
 ];
 
 // Generate Organization JSON-LD
@@ -179,7 +176,7 @@ export function getProductSchema(product: {
   if (product.priceMin !== undefined) {
     schema.offers = {
       '@type': 'AggregateOffer',
-      priceCurrency: product.currency || 'EUR',
+      priceCurrency: product.currency || 'GBP',
       lowPrice: product.priceMin,
       highPrice: product.priceMax || product.priceMin,
       availability: `https://schema.org/${product.availability || 'InStock'}`,
