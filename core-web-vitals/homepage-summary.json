@@ -1,0 +1,19 @@
+{
+  "url": "https://hercules-merchandise.de/",
+  "timestamp": "2026-01-30",
+  "strategy": "mobile",
+  "scores": {
+    "performance": 88,
+    "accessibility": 96,
+    "bestPractices": 96,
+    "seo": 92
+  },
+  "metrics": {
+    "fcp": "1.2\u00a0s",
+    "lcp": "3.0\u00a0s",
+    "tbt": "0\u00a0ms",
+    "cls": "0",
+    "speedIndex": "6.6\u00a0s",
+    "tti": "3.0\u00a0s"
+  }
+}

@@ -1,0 +1,12 @@
+name = "hercules-edge-router-uk"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+[vars]
+ASTRO_ORIGIN = "https://hercules-uk-staging-e9z.pages.dev"
+WORDPRESS_ORIGIN = "https://staging.hercules-merchandise.co.uk"
+
+# Routes will be configured after deployment
+# routes = [
+#   { pattern = "staging.hercules-merchandise.co.uk/*", zone_name = "hercules-merchandise.co.uk" }
+# ]
