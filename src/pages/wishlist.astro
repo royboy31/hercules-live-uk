@@ -49,7 +49,7 @@ const seo = {
         </div>
         <p class="empty-text">Ihre Wunschliste ist leer.</p>
         <p class="empty-subtext">Speichern Sie Ihre Lieblingsprodukte, indem Sie auf das Herz-Symbol klicken.</p>
-        <a href="/kollektionen/personalisierte-sportbekleidung/" class="browse-btn">Produkte entdecken</a>
+        <a href="/collections/personalisierte-sportbekleidung/" class="browse-btn">Produkte entdecken</a>
       </div>
 
       <!-- Wishlist Products Grid -->
@@ -361,14 +361,14 @@ const seo = {
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
         </button>
-        <a href="/produkte/${item.slug}/" class="product-link">
+        <a href="/products/${item.slug}/" class="product-link">
           ${item.thumbnail
             ? `<img src="${item.thumbnail}" alt="${item.name}" class="product-image" loading="lazy" />`
             : `<div class="product-image"></div>`
           }
           <h2 class="product-title">${item.name || 'Produkt'}</h2>
         </a>
-        <a href="/produkte/${item.slug}/" class="product-btn">Mehr erfahren</a>
+        <a href="/products/${item.slug}/" class="product-btn">Mehr erfahren</a>
       </li>
     `).join('');
 

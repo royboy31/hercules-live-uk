@@ -1,6 +1,6 @@
 ---
 /**
- * Product Detail Page - /produkte/[slug]
+ * Product Detail Page - /products/[slug]
  * Fetches product data from Worker API and renders the product page
  */
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -159,7 +159,7 @@ export async function getStaticPaths() {
 }
 
 // SEO Data
-const productUrl = `${siteConfig.siteUrl}/produkte/${slug}/`;
+const productUrl = `${siteConfig.siteUrl}/products/${slug}/`;
 const productDescription = product?.short_description
   ? truncateDescription(stripHtml(product.short_description))
   : product?.description
@@ -178,7 +178,7 @@ if (product?.categories?.[0]) {
   const catSlug = typeof cat === 'string' ? cat : cat.slug;
   breadcrumbItems.push({
     name: catName,
-    url: `${siteConfig.siteUrl}/kollektionen/${catSlug}/`
+    url: `${siteConfig.siteUrl}/collections/${catSlug}/`
   });
 }
 if (product) {
@@ -248,7 +248,7 @@ if (product) {
             <span class="separator"><svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12" fill="none"><path d="M6 6L0.75 11.1962L0.75 0.803848L6 6Z" fill="#469ADC"></path></svg></span>
             {product.categories?.[0] && (
               <>
-                <a href={`/kollektionen/${product.categories[0].slug}/`}>{product.categories[0].name}</a>
+                <a href={`/collections/${product.categories[0].slug}/`}>{product.categories[0].name}</a>
                 <span class="separator"><svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12" fill="none"><path d="M6 6L0.75 11.1962L0.75 0.803848L6 6Z" fill="#469ADC"></path></svg></span>
               </>
             )}
@@ -484,7 +484,7 @@ if (product) {
               <ul class="related-products">
                 {relatedProducts.map((relProduct: any) => (
                   <li class="related-product-item">
-                    <a href={`/produkte/${relProduct.slug}`} class="related-product-link">
+                    <a href={`/products/${relProduct.slug}`} class="related-product-link">
                       <img
                         src={`https://hercules-product-sync.gilles-86d.workers.dev/image/${relProduct.slug}/0`}
                         alt={relProduct.name}

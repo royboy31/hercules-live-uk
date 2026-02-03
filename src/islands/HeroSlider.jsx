@@ -7,7 +7,7 @@ const slides = [
     title: 'Personalisiertes Fußballtrikot',
     description: 'Individuelle Fußballtrikots für Ihren Verein',
     cta: 'Jetzt entdecken',
-    link: '/produkte/fussballtrikot',
+    link: '/products/fussballtrikot',
     backgroundColor: '#253461',
   },
   {
@@ -16,7 +16,7 @@ const slides = [
     title: 'Personalisierter HD-Fußballschal',
     description: 'Hochwertige Fanschals mit Ihrem Design',
     cta: 'Mehr erfahren',
-    link: '/produkte/fussballschal',
+    link: '/products/fussballschal',
     backgroundColor: '#469ADC',
   },
   {
@@ -25,7 +25,7 @@ const slides = [
     title: 'Personalisierte Vereinsschuhe',
     description: 'Custom Schuhe für Ihren Club',
     cta: 'Entdecken Sie unsere Vereinsschuhe',
-    link: '/produkte/vereinsschuhe',
+    link: '/products/vereinsschuhe',
     backgroundColor: '#10C99E',
   },
 ];
