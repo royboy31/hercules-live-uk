@@ -6,8 +6,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 
 const seo = {
-  title: 'Wunschliste - Hercules Merchandise',
-  description: 'Ihre gespeicherten Wunschlistenartikel bei Hercules Merchandise',
+  title: 'Wishlist - Hercules Merchandise',
+  description: 'Your saved wishlist items at Hercules Merchandise',
   noindex: true,
 };
 ---
@@ -28,7 +28,7 @@ const seo = {
             </span>
           </li>
           <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-            <span itemprop="name">Wunschliste</span>
+            <span itemprop="name">Wishlist</span>
             <meta itemprop="position" content="2" />
           </li>
         </ol>
@@ -36,7 +36,7 @@ const seo = {
 
       <!-- Page Header -->
       <header class="page-header">
-        <h1 class="page-title">Wunschliste</h1>
+        <h1 class="page-title">Wishlist</h1>
         <p id="wishlist-count" class="wishlist-count"></p>
       </header>
 
@@ -47,9 +47,9 @@ const seo = {
             <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="#dcdcdc"/>
           </svg>
         </div>
-        <p class="empty-text">Ihre Wunschliste ist leer.</p>
-        <p class="empty-subtext">Speichern Sie Ihre Lieblingsprodukte, indem Sie auf das Herz-Symbol klicken.</p>
-        <a href="/collections/personalisierte-sportbekleidung/" class="browse-btn">Produkte entdecken</a>
+        <p class="empty-text">Your wishlist is empty.</p>
+        <p class="empty-subtext">Save your favourite products by clicking the heart icon.</p>
+        <a href="/collections/custom-printed-sportswear/" class="browse-btn">Browse Products</a>
       </div>
 
       <!-- Wishlist Products Grid -->
@@ -349,14 +349,14 @@ const seo = {
 
     emptyEl.style.display = 'none';
     gridEl.style.display = 'grid';
-    countEl.textContent = `${items.length} ${items.length === 1 ? 'Produkt' : 'Produkte'} gespeichert`;
+    countEl.textContent = `${items.length} ${items.length === 1 ? 'product' : 'products'} saved`;
 
     // Sort by most recently added
     const sortedItems = [...items].sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
 
     gridEl.innerHTML = sortedItems.map(item => `
       <li class="product" data-id="${item.id}">
-        <button class="remove-btn" aria-label="Von Wunschliste entfernen" title="Entfernen">
+        <button class="remove-btn" aria-label="Remove from wishlist" title="Remove">
           <svg viewBox="0 0 24 24">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
@@ -366,9 +366,9 @@ const seo = {
             ? `<img src="${item.thumbnail}" alt="${item.name}" class="product-image" loading="lazy" />`
             : `<div class="product-image"></div>`
           }
-          <h2 class="product-title">${item.name || 'Produkt'}</h2>
+          <h2 class="product-title">${item.name || 'Product'}</h2>
         </a>
-        <a href="/products/${item.slug}/" class="product-btn">Mehr erfahren</a>
+        <a href="/products/${item.slug}/" class="product-btn">Discover More</a>
       </li>
     `).join('');
 

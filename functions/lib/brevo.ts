@@ -87,10 +87,10 @@ export function getContactFormEmailHtml(data: {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Neue Kontaktanfrage</h1>
+      <h1>New Contact Request</h1>
     </div>
     <div class="content">
-      <p>Vielen Dank für Ihre Nachricht! Wir haben folgende Anfrage erhalten:</p>
+      <p>Thank you for your message! We have received the following enquiry:</p>
 
       <div class="field">
         <span class="field-label">Name:</span>
@@ -98,45 +98,45 @@ export function getContactFormEmailHtml(data: {
       </div>
 
       <div class="field">
-        <span class="field-label">E-Mail:</span>
+        <span class="field-label">Email:</span>
         <div class="field-value">${escapeHtml(data.email)}</div>
       </div>
 
       ${data.phone ? `
       <div class="field">
-        <span class="field-label">Telefon:</span>
+        <span class="field-label">Phone:</span>
         <div class="field-value">${escapeHtml(data.phone)}</div>
       </div>
       ` : ''}
 
       ${data.message ? `
       <div class="field">
-        <span class="field-label">Nachricht:</span>
+        <span class="field-label">Message:</span>
         <div class="field-value">${escapeHtml(data.message)}</div>
       </div>
       ` : ''}
 
       ${data.files ? `
       <div class="field">
-        <span class="field-label">Angehängte Dateien:</span>
+        <span class="field-label">Attached Files:</span>
         <div class="field-value">${escapeHtml(data.files)}</div>
       </div>
       ` : ''}
 
       <div class="field">
-        <span class="field-label">Seite:</span>
+        <span class="field-label">Page:</span>
         <div class="field-value"><a href="${escapeHtml(data.pageUrl)}">${escapeHtml(data.pageTitle)}</a></div>
       </div>
 
       <div class="field">
-        <span class="field-label">Datum/Uhrzeit:</span>
-        <div class="field-value">${escapeHtml(data.date)} um ${escapeHtml(data.time)}</div>
+        <span class="field-label">Date/Time:</span>
+        <div class="field-value">${escapeHtml(data.date)} at ${escapeHtml(data.time)}</div>
       </div>
 
-      <p style="margin-top: 20px;">Wir werden uns so schnell wie möglich bei Ihnen melden.</p>
+      <p style="margin-top: 20px;">We will get back to you as soon as possible.</p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. Alle Rechte vorbehalten.</p>
+      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -183,28 +183,28 @@ export function getQuantityRequestEmailHtml(data: {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Neue Angebotsanfrage</h1>
+      <h1>New Quote Request</h1>
     </div>
     <div class="content">
-      <p>Vielen Dank für Ihre Angebotsanfrage! Hier sind die Details:</p>
+      <p>Thank you for your quote request! Here are the details:</p>
 
       <div class="product-box">
         <div class="product-name">${escapeHtml(data.productName)}</div>
-        <p><strong>Menge:</strong> ${escapeHtml(data.quantity)} Stück</p>
-        <p><strong>Preis pro Stück:</strong> <span class="price">${escapeHtml(data.pricePerPiece)}</span></p>
-        ${data.desiredDate ? `<p><strong>Gewünschtes Lieferdatum:</strong> ${escapeHtml(data.desiredDate)}</p>` : ''}
+        <p><strong>Quantity:</strong> ${escapeHtml(data.quantity)} pieces</p>
+        <p><strong>Price per piece:</strong> <span class="price">${escapeHtml(data.pricePerPiece)}</span></p>
+        ${data.desiredDate ? `<p><strong>Desired delivery date:</strong> ${escapeHtml(data.desiredDate)}</p>` : ''}
       </div>
 
       ${data.attributes ? `
       <div class="field">
-        <span class="field-label">Ausgewählte Optionen:</span>
+        <span class="field-label">Selected Options:</span>
         <div class="field-value">${escapeHtml(data.attributes)}</div>
       </div>
       ` : ''}
 
       ${data.addons ? `
       <div class="field">
-        <span class="field-label">Zusatzoptionen:</span>
+        <span class="field-label">Add-on Options:</span>
         <div class="field-value">${escapeHtml(data.addons)}</div>
       </div>
       ` : ''}
@@ -212,35 +212,35 @@ export function getQuantityRequestEmailHtml(data: {
       <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
 
       <div class="field">
-        <span class="field-label">Kontaktdaten:</span>
+        <span class="field-label">Contact Details:</span>
         <div class="field-value">
           <strong>${escapeHtml(data.name)}</strong><br>
-          E-Mail: ${escapeHtml(data.email)}<br>
-          ${data.phone ? `Telefon: ${escapeHtml(data.phone)}` : ''}
+          Email: ${escapeHtml(data.email)}<br>
+          ${data.phone ? `Phone: ${escapeHtml(data.phone)}` : ''}
         </div>
       </div>
 
       ${data.message ? `
       <div class="field">
-        <span class="field-label">Zusätzliche Nachricht:</span>
+        <span class="field-label">Additional Message:</span>
         <div class="field-value">${escapeHtml(data.message)}</div>
       </div>
       ` : ''}
 
       <div class="field">
-        <span class="field-label">Produkt-Link:</span>
+        <span class="field-label">Product Link:</span>
         <div class="field-value"><a href="${escapeHtml(data.pageUrl)}">${escapeHtml(data.pageUrl)}</a></div>
       </div>
 
       <div class="field">
-        <span class="field-label">Datum/Uhrzeit:</span>
-        <div class="field-value">${escapeHtml(data.date)} um ${escapeHtml(data.time)}</div>
+        <span class="field-label">Date/Time:</span>
+        <div class="field-value">${escapeHtml(data.date)} at ${escapeHtml(data.time)}</div>
       </div>
 
-      <p style="margin-top: 20px;">Wir werden uns so schnell wie möglich mit einem Angebot bei Ihnen melden.</p>
+      <p style="margin-top: 20px;">We will get back to you with a quote as soon as possible.</p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. Alle Rechte vorbehalten.</p>
+      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. All rights reserved.</p>
     </div>
   </div>
 </body>
@@ -275,20 +275,20 @@ export function getNewsletterNotificationEmailHtml(data: {
 <body>
   <div class="container">
     <div class="header">
-      <h1>Neue Newsletter-Anmeldung</h1>
+      <h1>New Newsletter Sign-up</h1>
     </div>
     <div class="content">
-      <p>Eine neue Person hat sich für den Newsletter angemeldet:</p>
+      <p>A new person has signed up for the newsletter:</p>
 
       <div class="email-box">
         <div class="email-address">${escapeHtml(data.email)}</div>
       </div>
 
-      <p><span class="field-label">Datum:</span> ${escapeHtml(data.date)} um ${escapeHtml(data.time)}</p>
-      <p><span class="field-label">Quelle:</span> ${escapeHtml(data.source)}</p>
+      <p><span class="field-label">Date:</span> ${escapeHtml(data.date)} at ${escapeHtml(data.time)}</p>
+      <p><span class="field-label">Source:</span> ${escapeHtml(data.source)}</p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. Alle Rechte vorbehalten.</p>
+      <p>&copy; ${new Date().getFullYear()} Hercules Merchandise. All rights reserved.</p>
     </div>
   </div>
 </body>

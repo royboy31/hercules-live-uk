@@ -24,8 +24,8 @@ export interface CartData {
 const DEFAULT_CART: CartData = {
   count: 0,
   items: [],
-  subtotal: '€0,00',
-  total: '€0,00'
+  subtotal: '£0.00',
+  total: '£0.00'
 };
 
 export const cartStore = {

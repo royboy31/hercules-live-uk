@@ -17,8 +17,13 @@ export const siteConfig = {
     type: 'Organization',
     email: 'info@hercules-merchandise.co.uk',
     phone: '+44 800 183 3745',
-    // No physical address for UK site schema
-    address: null,
+    // UK office address
+    address: {
+      streetAddress: '8 Northumberland Avenue',
+      postalCode: 'WC2N 5BY',
+      addressLocality: 'London',
+      addressCountry: 'GB'
+    },
     openingHours: [
       { day: 'Monday', time: '09:00-17:00' },
       { day: 'Tuesday', time: '09:00-17:00' },

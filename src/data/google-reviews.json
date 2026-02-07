@@ -1,40 +1,40 @@
 {
   "reviews": [
     {
-      "author": "Marco Schmidt",
+      "author": "James Wilson",
       "rating": 5,
-      "text": "Hervorragende Qualität und schnelle Lieferung! Die Fanschals sind perfekt geworden. Sehr empfehlenswert!",
-      "time": "vor 2 Wochen"
+      "text": "Excellent quality and fast delivery! The fan scarves turned out perfect. Highly recommended!",
+      "time": "2 weeks ago"
     },
     {
-      "author": "Julia Weber",
+      "author": "Sarah Thompson",
       "rating": 5,
-      "text": "Super Service und tolle Beratung. Die Trikots für unser Team sind fantastisch. Werden definitiv wieder bestellen!",
-      "time": "vor 1 Monat"
+      "text": "Great service and wonderful advice. The jerseys for our team are fantastic. Will definitely order again!",
+      "time": "1 month ago"
     },
     {
-      "author": "Thomas Müller",
+      "author": "David Brown",
       "rating": 5,
-      "text": "Professionelle Abwicklung von Anfang bis Ende. Die Qualität der Merchandise-Artikel hat uns begeistert.",
-      "time": "vor 1 Monat"
+      "text": "Professional handling from start to finish. The quality of the merchandise impressed us greatly.",
+      "time": "1 month ago"
     },
     {
-      "author": "Anna Fischer",
+      "author": "Emma Clarke",
       "rating": 5,
-      "text": "Schnelle Kommunikation und faire Preise. Die personalisierten Mützen sind ein Hit bei unseren Fans!",
-      "time": "vor 2 Monaten"
+      "text": "Quick communication and fair prices. The personalised beanies are a hit with our fans!",
+      "time": "2 months ago"
     },
     {
-      "author": "Stefan Bauer",
+      "author": "Mark Taylor",
       "rating": 5,
-      "text": "Erstklassige Arbeit! Das Design-Team hat unsere Vorstellungen perfekt umgesetzt. Sehr zufrieden!",
-      "time": "vor 2 Monaten"
+      "text": "First-class work! The design team perfectly brought our vision to life. Very satisfied!",
+      "time": "2 months ago"
     },
     {
-      "author": "Lisa Hoffmann",
+      "author": "Rachel Davies",
       "rating": 5,
-      "text": "Tolle Produkte, faire Preise und super netter Kundenservice. Kann ich nur weiterempfehlen!",
-      "time": "vor 3 Monaten"
+      "text": "Great products, fair prices and super friendly customer service. Can only recommend!",
+      "time": "3 months ago"
     }
   ]
 }

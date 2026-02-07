@@ -34,16 +34,16 @@ import staticReviewsData from '../data/google-reviews.json';
 
 // Default fallback values if API is not configured or fails
 const FALLBACK_DATA: GooglePlaceData = {
-  rating: 5.0,
-  reviewCount: 56,
-  name: 'Hercules Merchandise Deutschland',
-  url: 'https://www.google.com/maps/place//data=!4m7!3m6!1s0x21d159209e369b9d:0xa126617f91835893!8m2!3d30.886403!4d-49.4022062!9m1!1b1',
+  rating: 4.9,
+  reviewCount: 135,
+  name: 'Hercules Merchandise UK',
+  url: 'https://www.google.com/maps/place//data=!4m3!3m2!1s0xa13b775f11fdb24d:0x93a56bc6631bafa4',
   reviews: staticReviewsData.reviews as GoogleReview[]
 };
 
-// Place ID for Hercules Merchandise Deutschland
+// Place ID for Hercules Merchandise UK
 // To find your Place ID: https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder
-const PLACE_ID = 'ChIJtRY2nLY44EcRbp9kBiuZYKI';
+const PLACE_ID = 'ChIJTbL9EV93O6ERpK8bY8ZrpZM';
 
 // Cache the result during build to avoid multiple API calls
 let cachedData: GooglePlaceData | null = null;
@@ -122,15 +122,15 @@ export async function getGooglePlaceData(): Promise<GooglePlaceData> {
  * Get the star rating as a display string (e.g., "4.9")
  */
 export function formatRating(rating: number): string {
-  return rating.toFixed(1).replace('.', ','); // German format: 4,9
+  return rating.toFixed(1); // English format: 4.9
 }
 
 /**
- * Get the review count as a display string (e.g., "100+ Bewertungen")
+ * Get the review count as a display string (e.g., "100+ Reviews")
  */
 export function formatReviewCount(count: number): string {
   if (count >= 1000) {
-    return `${Math.floor(count / 1000)}k+ Bewertungen`;
+    return `${Math.floor(count / 1000)}k+ Reviews`;
   }
-  return `${count}+ Bewertungen`;
+  return `${count}+ Reviews`;
 }

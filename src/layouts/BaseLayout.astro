@@ -99,8 +99,8 @@ if (customHreflangUrls?.de || customHreflangUrls?.en || customHreflangUrls?.fr) 
   hreflangs = getHreflangUrls(currentPath, pageType);
 }
 
-// Canonical URL (current DE page)
-const canonicalUrl = `${DOMAINS.de}${currentPath}`;
+// Canonical URL (UK site)
+const canonicalUrl = `${DOMAINS.en}${currentPath}`;
 
 // Full title with site name
 const fullTitle = `${title} ${siteConfig.titleSeparator} ${siteConfig.siteName}`;
@@ -168,7 +168,7 @@ if (jsonLd) {
   <link rel="alternate" hreflang="de" href={hreflangs.de} />
   <link rel="alternate" hreflang="en" href={hreflangs.en} />
   <link rel="alternate" hreflang="fr" href={hreflangs.fr} />
-  <link rel="alternate" hreflang="x-default" href={hreflangs.de} />
+  <link rel="alternate" hreflang="x-default" href={hreflangs.en} />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content={ogType}>
@@ -228,6 +228,48 @@ if (jsonLd) {
   <link rel="preconnect" href="https://hercules-product-sync-uk.gilles-86d.workers.dev" crossorigin>
   <link rel="dns-prefetch" href="https://hercules-product-sync-uk.gilles-86d.workers.dev">
 
+  <!-- Google Consent Mode V2 - Must load BEFORE GTM and GA4 -->
+  <script is:inline>
+    // Default consent for EU/GB regions (GDPR compliant - deny all until user consents)
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+
+    gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'wait_for_update': 500
+    });
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script is:inline>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-TW5HR72');
+  </script>
+
+  <!-- Google Ads Conversion Tracking -->
+  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=AW-11156667431"></script>
+  <script is:inline>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'AW-11156667431');
+  </script>
+
+  <!-- Microsoft Clarity -->
+  <script is:inline>
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window,document,"clarity","script","j9gd5ystsk");
+  </script>
+
   <!-- Google Analytics 4 (gtag.js) -->
   <!-- TODO: Replace G-XXXXXXXXX with actual GA4 Measurement ID -->
   <script is:inline>
@@ -272,10 +314,23 @@ if (jsonLd) {
       initGA4();
     }
 
-    // Listen for consent updates
+    // Listen for consent updates and update Google Consent Mode
     window.addEventListener('cmplz_consent_updated', function(e) {
-      if (e.detail && e.detail.statistics) {
-        initGA4();
+      if (e.detail) {
+        // Update consent mode based on user preferences
+        if (typeof gtag === 'function') {
+          gtag('consent', 'update', {
+            'analytics_storage': e.detail.statistics ? 'granted' : 'denied',
+            'ad_storage': e.detail.marketing ? 'granted' : 'denied',
+            'ad_user_data': e.detail.marketing ? 'granted' : 'denied',
+            'ad_personalization': e.detail.marketing ? 'granted' : 'denied'
+          });
+        }
+
+        // Initialize GA4 if statistics consent given
+        if (e.detail.statistics) {
+          initGA4();
+        }
       }
     });
   </script>
@@ -286,6 +341,11 @@ if (jsonLd) {
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 </head>
 <body class="min-h-screen flex flex-col">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TW5HR72"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
   <TopBar />
   <Header />
   <StickyHeader />
@@ -338,7 +398,7 @@ if (jsonLd) {
             Chathive.widget.init({
               apiKey: "Y6bGE4l2M1Yp6Wm-sYqpRpsq"
             });
-            Chathive.widget.setLanguage("de");
+            Chathive.widget.setLanguage("en");
           }
         };
         document.body.appendChild(script);

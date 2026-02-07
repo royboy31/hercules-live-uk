@@ -81,7 +81,7 @@ let priceDisplay = '';
 if (product.price) {
   const price = parseFloat(product.price);
   if (!isNaN(price)) {
-    priceDisplay = `€ ${price.toFixed(2).replace('.', ',')}`;
+    priceDisplay = `£${price.toFixed(2)}`;
   }
 }
 
@@ -114,14 +114,14 @@ const cardFeatures = product.card_features || [];
         {isSustainable && (
           <img
             src="/images/badges/green-option.svg"
-            alt="Umweltfreundliches Produkt-Siegel"
+            alt="Eco-friendly Product Badge"
             class="kd-product-badge kd-badge-eco"
           />
         )}
         {isMadeInEurope && (
           <img
             src="/images/badges/made-in-europe.svg"
-            alt="Siegel Hergestellt in Europa"
+            alt="Made in Europe Badge"
             class="kd-product-badge kd-badge-eu"
           />
         )}
@@ -190,7 +190,7 @@ const cardFeatures = product.card_features || [];
     )}
   </a>
   <a href={`/products/${product.slug}`} class="button product_type_variable">
-    Mehr erfahren
+    Discover More
   </a>
 </li>
 

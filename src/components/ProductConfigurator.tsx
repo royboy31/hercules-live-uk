@@ -380,7 +380,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     ) * 100) / 100;
 
     const totalExclVat = Math.round(pricePerPiece * quantitySelected * 100) / 100;
-    const taxMultiplier = config ? 1 + (config.tax_percent / 100) : 1.19;
+    const taxMultiplier = config && config.tax_percent > 0 ? 1 + (config.tax_percent / 100) : 1.20;
     const totalInclVat = Math.round(totalExclVat * taxMultiplier * 100) / 100;
 
     return {
@@ -526,7 +526,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     textarea.innerHTML = str;
     return textarea.value;
   };
-  const currencySymbol = decodeHtmlEntity(config.currency_symbol) || '€';
+  const currencySymbol = decodeHtmlEntity(config.currency_symbol) || '£';
   // Use visibleAttributeKeys for step counting (excludes hidden default attributes)
   const totalSteps = visibleAttributeKeys.length + visibleAddons.length + 1; // +1 for quantity
   const quantityStepIndex = visibleAttributeKeys.length + visibleAddons.length;
@@ -554,7 +554,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       {/* Step indicator - matches WordPress exactly */}
       <div className="pearl-step-indicator">
         <h2>CREATE YOUR PRODUCT — STEP {currentStepNum} OF {totalSteps}</h2>
-        <span>From {minQuantity} pieces</span>
+        <span>From <strong>{minQuantity} PCS</strong></span>
       </div>
 
       {/* Attribute Steps - Only render visible attributes (excludes single default options) */}
@@ -858,7 +858,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
               </>
             ) : (
               <div className="kd-prod-attribute-title-wrapper">
-                <span>{quantityStepIndex + 1}: Select your quantity<br />(Prices shown are net)</span>
+                <span>{quantityStepIndex + 1}: Choose your quantity</span>
               </div>
             )}
           </h3>
@@ -905,7 +905,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                       {savings > 0 && (
                         <span className="save">Save {savings}%</span>
                       )}
-                      <span>{currencySymbol}{totalPrice.toFixed(2).replace('.', ',')}</span>
+                      <span>{currencySymbol}{totalPrice.toFixed(2)}</span>
                     </div>
                   </label>
                 );
@@ -931,7 +931,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
               {/* Custom quantity slider */}
               <div className="range-wrapper">
-                <h4 className="specific-qty-title">Or specify your exact quantity</h4>
+                <h4 className="specific-qty-title">Or choose a specific quantity</h4>
 
                 <div className="kd-range-slider-container">
                   <div
@@ -997,27 +997,27 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       {/* Summary */}
       {priceInfo && quantitySelected > 0 && (
         <div className="variation-summary">
-          <h3 className="your-offer-title">{quantityStepIndex + 2}. Your Quote</h3>
+          <h3 className="your-offer-title">{quantityStepIndex + 2}. Your offer</h3>
           <table className="offer-table">
             <tbody>
               <tr>
-                <td>Shipping to UK</td>
+                <td>Shipping to the UK</td>
                 <td className="kd-free-value">Free</td>
               </tr>
               <tr>
-                <td>Setup Fee</td>
+                <td>Set-up costs</td>
                 <td className="kd-free-value">Free</td>
               </tr>
               <tr>
-                <td>Price per unit (net)</td>
-                <td className="kd-price-value">{currencySymbol}{priceInfo.pricePerPiece.toFixed(2)}</td>
+                <td>All-in price per piece</td>
+                <td className="kd-price-value">{currencySymbol}{priceInfo.pricePerPiece.toFixed(2)} (excl. VAT)</td>
               </tr>
               <tr>
-                <td>Total (net)</td>
+                <td>Total (excl. VAT)</td>
                 <td className="kd-total-value">{currencySymbol}{priceInfo.totalExclVat.toFixed(2)}</td>
               </tr>
               <tr>
-                <td>Total (gross)</td>
+                <td>Total (incl. VAT)</td>
                 <td>{currencySymbol}{priceInfo.totalInclVat.toFixed(2)}</td>
               </tr>
               <tr>
@@ -1042,13 +1042,13 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     <span>{priceInfo.leadTime}</span>
                   </span>
                   <span className="kd-express-link-wrapper">
-                    <button
-                      type="button"
-                      onClick={() => setShowExpressPopup(true)}
+                    <a
+                      href="#"
+                      onClick={(e) => { e.preventDefault(); setShowExpressPopup(true); }}
                       className="kd-express-link"
                     >
-                      I need express delivery
-                    </button>
+                      I need an urgent delivery
+                    </a>
                   </span>
                 </td>
               </tr>
@@ -1081,7 +1081,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('quote')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Processing...' : 'Create your quote'}
+            {addToCartLoading ? 'Processing...' : 'Create quote'}
           </button>
           <small>We will send you a PDF</small>
         </div>

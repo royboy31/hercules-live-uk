@@ -298,11 +298,11 @@ export default function ExpressDeliveryPopup({
           ) : (
             /* Form Content */
             <>
-          <h3>EXPRESS DELIVERY REQUEST</h3>
-          <p>Please select your desired delivery date and we will get back to you.</p>
+          <h3>URGENT DELIVERY REQUEST</h3>
+          <p>Please select your required delivery date and we'll get back to you.</p>
 
           {/* Product Summary - Simple UL with bullets */}
-          <ul>
+          <ul style={{ marginTop: '15px' }}>
             {Object.entries(selectedAttributes)
               .filter(([_, value]) => value.toLowerCase() !== 'default')
               .map(([key, value]) => (
@@ -320,7 +320,7 @@ export default function ExpressDeliveryPopup({
               );
             })}
             <li>Quantity: {quantity}</li>
-            <li>Price per unit: {currencySymbol}{pricePerPiece.toFixed(2)}</li>
+            <li>Price per piece: {currencySymbol}{pricePerPiece.toFixed(2)}</li>
           </ul>
 
           <form onSubmit={handleSubmit}>
@@ -347,7 +347,7 @@ export default function ExpressDeliveryPopup({
                 <input
                   type="text"
                   name="name"
-                  placeholder="Name"
+                  placeholder="Your name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
@@ -363,7 +363,7 @@ export default function ExpressDeliveryPopup({
                 <input
                   type="tel"
                   name="phone"
-                  placeholder="Phone Number"
+                  placeholder="Phone number"
                   value={formData.phone}
                   onChange={handleInputChange}
                   style={{ marginTop: '10px', padding: '5px', width: '100%' }}
@@ -376,7 +376,7 @@ export default function ExpressDeliveryPopup({
                 <input
                   type="email"
                   name="email"
-                  placeholder="Email Address"
+                  placeholder="Email address"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
@@ -391,7 +391,7 @@ export default function ExpressDeliveryPopup({
                 <label>Message</label>
                 <textarea
                   name="message"
-                  placeholder="Your Message"
+                  placeholder="Your message"
                   value={formData.message}
                   onChange={handleInputChange}
                   style={{
@@ -456,7 +456,7 @@ export default function ExpressDeliveryPopup({
                   cursor: isSubmitting ? 'not-allowed' : 'pointer'
                 }}
               >
-                {isSubmitting ? 'Loading...' : 'Send'}
+                {isSubmitting ? 'Loading...' : 'Submit'}
               </button>
             </div>
           </form>
@@ -533,6 +533,7 @@ export default function ExpressDeliveryPopup({
         .urgent-popup ul {
           margin: 0 0 20px 0;
           padding-left: 20px;
+          list-style-type: disc;
         }
 
         .urgent-popup ul li {

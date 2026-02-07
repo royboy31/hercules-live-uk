@@ -947,7 +947,7 @@ input[type="range"]::-webkit-slider-runnable-track {
         overflow-x: hidden;
     }
 
-    /* Step indicator - align "AB X STÜCKE" with ÄNDERN buttons */
+    /* Step indicator - align "FROM X PCS" with CHANGE buttons */
     .pearl-step-indicator {
         display: grid !important;
         grid-template-columns: 75% 25%;

@@ -103,10 +103,10 @@ export default function ProductSearch({
           value={query}
           onChange={handleInputChange}
           onFocus={handleFocus}
-          aria-label="Produktsuche"
+          aria-label="Product search"
         />
         {isLoading && (
-          <span className="product-search-spinner" aria-label="Suche läuft..." />
+          <span className="product-search-spinner" aria-label="Searching..." />
         )}
         <svg
           className="product-search-icon"
@@ -119,7 +119,7 @@ export default function ProductSearch({
 
       <div className={`product-search-results ${isOpen ? 'active' : ''}`}>
         {noResults ? (
-          <p className="product-search-no-results">Keine Produkte gefunden.</p>
+          <p className="product-search-no-results">No products found.</p>
         ) : (
           <ul className="product-result-list">
             {results.map((product) => (

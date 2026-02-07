@@ -156,8 +156,8 @@ export default function WishlistButton({
       onClick={handleClick}
       className={`wishlist-button ${inWishlist ? 'in-wishlist' : ''} ${className}`}
       style={buttonStyle}
-      aria-label={inWishlist ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}
-      title={inWishlist ? 'Von Wunschliste entfernen' : 'Zur Wunschliste hinzufügen'}
+      aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
     >
       <svg
         viewBox="0 0 24 24"

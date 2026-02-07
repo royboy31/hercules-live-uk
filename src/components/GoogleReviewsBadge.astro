@@ -31,14 +31,14 @@ const aspectRatio = 306 / 50;
 const height = Math.round(width / aspectRatio);
 ---
 
-<a href={url} target="_blank" rel="noopener noreferrer" class:list={["google-reviews-badge", className]} title={`${rating} Sterne aus ${reviewCount}+ Bewertungen`}>
+<a href={url} target="_blank" rel="noopener noreferrer" class:list={["google-reviews-badge", className]} title={`${rating} stars from ${reviewCount}+ reviews`}>
   <svg
     viewBox="0 0 306 50"
     width={width}
     height={height}
     xmlns="http://www.w3.org/2000/svg"
     role="img"
-    aria-label={`Google Bewertungen: ${rating} von 5 Sternen`}
+    aria-label={`Google Reviews: ${rating} out of 5 stars`}
     preserveAspectRatio="xMidYMid meet"
   >
     <!-- Google "G" Logo (36x36, smaller) -->

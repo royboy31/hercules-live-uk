@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = 'Payment Methods';
+const pageDescription = 'Hercules Merchandise offers secure payment by Visa, Mastercard, Maestro, Apple Pay, Google Pay and bank transfer.';
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  pageType="page"
+>
+  <!-- Breadcrumb -->
+  <section class="breadcrumb-section">
+    <div class="container">
+      <nav class="breadcrumb">
+        <a href="/">Home</a>
+        <span class="separator">
+          <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
+            <path d="M1.5 1L6.5 6L1.5 11" stroke="#469ADC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="current">Payment Methods</span>
+      </nav>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <section class="page-section">
+    <div class="container">
+      <div class="content-wrapper">
+        <h1>Payment Methods</h1>
+
+        <div class="content-card">
+          <p>Hercules Merchandise offers secure payment by Visa, Mastercard, Maestro, Apple Pay or Google Pay. Contact us for payment by bank transfer.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .breadcrumb-section {
+    background: #FAFAFA;
+    padding: 15px 0;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+  }
+
+  .breadcrumb a {
+    color: #787878;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .breadcrumb a:hover {
+    color: #469ADC;
+  }
+
+  .breadcrumb .current {
+    color: #469ADC;
+  }
+
+  .breadcrumb .separator {
+    display: flex;
+    align-items: center;
+  }
+
+  .page-section {
+    background: #FAFAFA;
+    padding: 40px 0 80px;
+  }
+
+  .content-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-family: 'Jost', sans-serif;
+    font-size: 42px;
+    font-weight: 600;
+    color: #253461;
+    text-align: center;
+    margin-bottom: 40px;
+    text-transform: uppercase;
+  }
+
+  .content-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .content-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    margin: 0;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 28px;
+    }
+
+    .content-card {
+      padding: 30px 20px;
+    }
+  }
+</style>

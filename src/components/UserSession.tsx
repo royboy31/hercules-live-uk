@@ -199,7 +199,7 @@ export default function UserSession({ type }: UserSessionProps) {
   if (type === 'cart') {
     const count = cart.count || 0;
     const items = cart.items || [];
-    const subtotal = cart.subtotal || '€0,00';
+    const subtotal = cart.subtotal || '£0.00';
 
     // Container styles
     const containerStyle: React.CSSProperties = {
@@ -311,6 +311,18 @@ export default function UserSession({ type }: UserSessionProps) {
       margin: 0,
     };
 
+    const removeButtonStyle: React.CSSProperties = {
+      background: 'transparent',
+      border: 'none',
+      color: '#999',
+      cursor: 'pointer',
+      padding: '4px 8px',
+      fontSize: '18px',
+      lineHeight: '1',
+      transition: 'color 0.2s',
+      flexShrink: 0,
+    };
+
     const subtotalRowStyle: React.CSSProperties = {
       display: 'flex',
       justifyContent: 'space-between',
@@ -377,7 +389,7 @@ export default function UserSession({ type }: UserSessionProps) {
         <button
           onClick={handleCartClick}
           className="header-icon cart-icon"
-          aria-label="Warenkorb"
+          aria-label="Cart"
           aria-expanded={showCartDropdown}
           style={iconStyle}
         >
@@ -396,7 +408,7 @@ export default function UserSession({ type }: UserSessionProps) {
           <div style={dropdownStyle} className="cart-dropdown">
             {count === 0 ? (
               <div style={emptyCartStyle}>
-                <p style={{ margin: 0 }}>Ihr Warenkorb ist leer.</p>
+                <p style={{ margin: 0 }}>Your cart is empty.</p>
               </div>
             ) : (
               <>
@@ -419,20 +431,40 @@ export default function UserSession({ type }: UserSessionProps) {
                           </p>
                         </div>
                       </a>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          removeFromCart(item.key);
+                        }}
+                        disabled={removingItem === item.key}
+                        style={removeButtonStyle}
+                        onMouseEnter={(e) => {
+                          if (removingItem !== item.key) {
+                            e.currentTarget.style.color = '#ff4444';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#999';
+                        }}
+                        aria-label={`Remove ${item.name}`}
+                        title="Remove item"
+                      >
+                        {removingItem === item.key ? '...' : '×'}
+                      </button>
                     </li>
                   ))}
                 </ul>
 
                 {/* Subtotal */}
                 <div style={subtotalRowStyle}>
-                  <span>Zwischensumme:</span>
+                  <span>Subtotal:</span>
                   <strong>{subtotal}</strong>
                 </div>
 
                 {/* Buttons */}
                 <div style={buttonsContainerStyle}>
                   <a
-                    href="/angebotsgenerator/"
+                    href="/quote-generator/"
                     style={viewCartBtnStyle}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = '#469adc';
@@ -443,10 +475,10 @@ export default function UserSession({ type }: UserSessionProps) {
                       e.currentTarget.style.color = '#469adc';
                     }}
                   >
-                    Angebotsgenerator
+                    Quote Generator
                   </a>
                   <a
-                    href="/warenkorb/"
+                    href="/cart/"
                     style={checkoutBtnStyle}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = 'transparent';
@@ -457,7 +489,7 @@ export default function UserSession({ type }: UserSessionProps) {
                       e.currentTarget.style.color = '#fff';
                     }}
                   >
-                    Warenkorb ansehen
+                    View Cart
                   </a>
                 </div>
               </>
@@ -470,7 +502,7 @@ export default function UserSession({ type }: UserSessionProps) {
 
   // Account link with user state
   if (type === 'account') {
-    const accountUrl = '/mein-konto/';
+    const accountUrl = '/my-account/';
 
     // Full icon styles to match WordPress exactly
     const iconStyle: React.CSSProperties = {
@@ -507,8 +539,8 @@ export default function UserSession({ type }: UserSessionProps) {
       <a
         href={accountUrl}
         className="header-icon"
-        aria-label={isLoggedIn ? `Hallo, ${user?.first_name || user?.name}` : 'Mein Konto'}
-        title={isLoggedIn ? `Hallo, ${user?.first_name || user?.name}` : 'Anmelden'}
+        aria-label={isLoggedIn ? `Hello, ${user?.first_name || user?.name}` : 'My Account'}
+        title={isLoggedIn ? `Hello, ${user?.first_name || user?.name}` : 'Sign in'}
         style={iconStyle}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 29 29" fill="none">

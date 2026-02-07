@@ -22,7 +22,7 @@ try {
 // Format date for display
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('de-DE', {
+  return date.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -31,7 +31,7 @@ function formatDate(dateStr: string) {
 
 // SEO configuration
 const pageTitle = 'Blog';
-const pageDescription = 'Entdecken Sie die neuesten Nachrichten, Tipps und Einblicke rund um individuelle Fanschals, Merchandise-Artikel und mehr.';
+const pageDescription = 'Discover the latest news, tips and insights about custom fan scarves, merchandise and more.';
 const canonicalUrl = `${siteConfig.siteUrl}/blogs/`;
 
 // Generate JSON-LD schemas
@@ -95,7 +95,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
                 <time class="post-date">{formatDate(post.date)}</time>
                 <h2 class="post-title">{post.title}</h2>
                 <p class="post-excerpt">{post.excerpt}</p>
-                <span class="read-more">Weiterlesen</span>
+                <span class="read-more">Read More</span>
               </div>
             </a>
           </article>
