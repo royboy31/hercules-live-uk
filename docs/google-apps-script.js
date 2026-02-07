@@ -24,7 +24,7 @@
 
 // Your Google Spreadsheet ID (from the URL)
 // Example: https://docs.google.com/spreadsheets/d/THIS_IS_YOUR_ID/edit
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const SPREADSHEET_ID = '1s97QbIkSByUbOmA5fwiMxEPXjyxG9ofcZSv3mEMuJPo';
 
 // Sheet names
 const CONTACT_SHEET_NAME = 'Kontaktanfragen';
@@ -121,6 +121,16 @@ function doPost(e) {
 
 function handleRequest(e) {
   try {
+    // Handle test calls without parameters
+    if (!e || !e.parameter) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: false,
+          error: 'No parameters provided. Use testScript() for testing.'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     const params = e.parameter;
     // Check both 'type' (newsletter) and 'formType' (contact/quantity)
     const type = params.type || params.formType || 'contact';
@@ -359,17 +369,50 @@ function migrateAllSheets() {
 
 /**
  * Test function to verify the script is working
+ * Run this from: Run > Run function > testScript
  */
 function testScript() {
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheets = spreadsheet.getSheets().map(s => s.getName());
+  try {
+    Logger.clear();
+    Logger.log('=== Testing Hercules UK Form Handler ===');
+    Logger.log('');
 
-  console.log('Spreadsheet ID:', SPREADSHEET_ID);
-  console.log('Available sheets:', sheets.join(', '));
+    // Test 1: Spreadsheet Connection
+    Logger.log('Test 1: Connecting to spreadsheet...');
+    const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+    Logger.log('✓ Successfully connected to: ' + spreadsheet.getName());
+    Logger.log('✓ Spreadsheet ID: ' + SPREADSHEET_ID);
+    Logger.log('');
 
-  return {
-    spreadsheetId: SPREADSHEET_ID,
-    sheets: sheets,
-    expectedSheets: [CONTACT_SHEET_NAME, NEWSLETTER_SHEET_NAME, QUANTITY_REQUEST_SHEET_NAME, EXPRESS_DELIVERY_SHEET_NAME]
-  };
+    // Test 2: List Existing Sheets
+    Logger.log('Test 2: Checking existing sheets...');
+    const sheets = spreadsheet.getSheets().map(s => s.getName());
+    Logger.log('✓ Found ' + sheets.length + ' sheet(s): ' + sheets.join(', '));
+    Logger.log('');
+
+    // Test 3: Expected Sheets
+    Logger.log('Test 3: Expected sheets for auto-creation:');
+    Logger.log('  - ' + CONTACT_SHEET_NAME);
+    Logger.log('  - ' + NEWSLETTER_SHEET_NAME);
+    Logger.log('  - ' + QUANTITY_REQUEST_SHEET_NAME);
+    Logger.log('  - ' + EXPRESS_DELIVERY_SHEET_NAME);
+    Logger.log('  (These will be created automatically on first form submission)');
+    Logger.log('');
+
+    Logger.log('=== All Tests Passed! ✓ ===');
+    Logger.log('');
+    Logger.log('Next step: Deploy > New deployment > Web app');
+
+    return 'SUCCESS: Script is configured correctly!';
+  } catch (error) {
+    Logger.log('=== ERROR ===');
+    Logger.log('✗ ' + error.toString());
+    Logger.log('');
+    Logger.log('Make sure:');
+    Logger.log('1. Spreadsheet ID is correct: ' + SPREADSHEET_ID);
+    Logger.log('2. You have edit access to this spreadsheet');
+    Logger.log('3. You granted permissions when prompted');
+
+    return 'ERROR: ' + error.toString();
+  }
 }
