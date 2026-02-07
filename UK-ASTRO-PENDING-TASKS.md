@@ -41,22 +41,27 @@
 
 ---
 
-## 7. Full Product Sync (MEDIUM)
-- [ ] Run full product sync loop after KV limit resets
+## 7. Full Product Sync (MEDIUM) — ⚡ IN PROGRESS
+- [x] Deploy product sync worker (https://hercules-product-sync-uk.gilles-86d.workers.dev)
+- [x] Configure WooCommerce API credentials
+- [x] Run full product sync from UK staging site (114 products total)
+- [x] Mark 10 products as featured (badges) for testing
+- [x] Sync products to KV storage
 - [ ] Verify PDFs are showing after sync
 - [ ] Test webhook flow (product update → sync → rebuild)
 
 ---
 
-## 8. Cart localStorage Testing (MEDIUM)
-- [ ] Add item to cart → badge updates instantly
-- [ ] Remove item from mini cart → badge updates
-- [ ] Navigate between pages → count persists (no flicker)
-- [ ] Open new tab → cart count matches
-- [ ] Refresh page → cart count persists
-- [ ] Clear cookies → cart data remains (localStorage)
-- [ ] Visit /cart/ → shows accurate server data
-- [ ] First visit (incognito) → fetches from API once, then persists
+## ~~8. Cart localStorage Testing (MEDIUM)~~ ✅ DONE
+- [x] Add item to cart → badge updates instantly
+- [x] Remove item from mini cart → badge updates (added × remove buttons with hover effects)
+- [x] Navigate between pages → count persists (no flicker)
+- [x] Open new tab → cart count matches
+- [x] Refresh page → cart count persists
+- [x] Clear cookies → cart data remains (localStorage)
+- [x] Visit /cart/ → shows accurate server data
+- [x] First visit (incognito) → fetches from API once, then persists
+- [x] Fixed currency from € to £ (UK format with 0.00 decimal)
 
 ---
 
