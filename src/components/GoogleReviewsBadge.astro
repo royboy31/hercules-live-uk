@@ -10,9 +10,10 @@ import { getGooglePlaceData } from '../lib/google-places';
 interface Props {
   class?: string;
   width?: number;
+  showReviewCount?: boolean;
 }
 
-const { class: className, width = 306 } = Astro.props;
+const { class: className, width = 306, showReviewCount = true } = Astro.props;
 
 // Fetch place data at build time
 const placeData = await getGooglePlaceData();
@@ -29,14 +30,17 @@ const ratingDisplay = rating % 1 === 0 ? rating.toFixed(1) : rating.toString();
 // Format review count for display (e.g., "135+ Reviews")
 const reviewCountDisplay = `${reviewCount}+ Reviews`;
 
-// Calculate aspect ratio for responsive sizing (updated to 450x50 to fit review count text)
-const aspectRatio = 450 / 50;
+// Calculate aspect ratio for responsive sizing
+// With review count: 450x50, Without: 306x50
+const viewBoxWidth = showReviewCount ? 450 : 306;
+const viewBoxHeight = 50;
+const aspectRatio = viewBoxWidth / viewBoxHeight;
 const height = Math.round(width / aspectRatio);
 ---
 
 <a href={url} target="_blank" rel="noopener noreferrer" class:list={["google-reviews-badge", className]} title={`${rating} stars from ${reviewCount}+ reviews`}>
   <svg
-    viewBox="0 0 450 50"
+    viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
     width={width}
     height={height}
     xmlns="http://www.w3.org/2000/svg"
@@ -95,10 +99,12 @@ const height = Math.round(width / aspectRatio);
       ))}
     </g>
 
-    <!-- Review Count Text (e.g., "135+ Reviews") -->
-    <text x="315" y="32" font-family="Jost, sans-serif" font-size="20" font-weight="500" fill="#FFFFFF">
-      {reviewCountDisplay}
-    </text>
+    <!-- Review Count Text (e.g., "135+ Reviews") - Only shown if showReviewCount is true -->
+    {showReviewCount && (
+      <text x="315" y="32" font-family="Jost, sans-serif" font-size="20" font-weight="500" fill="#FFFFFF">
+        {reviewCountDisplay}
+      </text>
+    )}
   </svg>
 </a>
 
