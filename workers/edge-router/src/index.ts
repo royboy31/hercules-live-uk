@@ -67,7 +67,7 @@ const WORDPRESS_PATHS = [
 const ASTRO_PATHS = [
   '/',
   '/collections',
-  '/blogs',
+  '/blogs/uk',
   '/products',  // Product detail pages (Astro version)
   '/wishlist',  // Wishlist page (localStorage-based, no WordPress)
 ];
@@ -132,9 +132,14 @@ export default {
     // 301 REDIRECTS - Old/alternate URLs to UK URL structure
     // ============================================
 
-    // /blog -> /blogs
+    // /blog -> /blogs/uk (UK blog)
     if (pathname === '/blog' || pathname === '/blog/') {
-      return Response.redirect(new URL('/blogs/', url.origin).toString(), 301);
+      return Response.redirect(new URL('/blogs/uk', url.origin).toString(), 301);
+    }
+
+    // /blogs -> /blogs/uk (redirect to UK blog)
+    if (pathname === '/blogs' || pathname === '/blogs/') {
+      return Response.redirect(new URL('/blogs/uk', url.origin).toString(), 301);
     }
 
     // German URLs -> English (for any old links or crawlers)

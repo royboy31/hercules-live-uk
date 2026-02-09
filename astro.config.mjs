@@ -92,8 +92,6 @@ export default defineConfig({
   ],
 
   redirects: {
-    '/blog': '/blogs',
-    '/blog/': '/blogs',
     // Redirect German URLs to English
     '/produkte/*': '/products/*',
     '/kollektionen/*': '/collections/*',

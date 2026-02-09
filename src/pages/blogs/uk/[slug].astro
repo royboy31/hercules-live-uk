@@ -1,12 +1,12 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 import {
   siteConfig,
   getArticleSchema,
   getBreadcrumbSchema,
   truncateDescription,
   stripHtml
-} from '../../config/seo';
+} from '../../../config/seo';
 
 const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
 
@@ -77,8 +77,8 @@ const metaDescription = post.excerpt
   ? truncateDescription(stripHtml(post.excerpt))
   : truncateDescription(post.title);
 
-const canonicalUrl = `${siteConfig.siteUrl}/blogs/${slug}/`;
-const postImage = post.localFeaturedImage || post.featuredImage || `${siteConfig.siteUrl}${siteConfig.defaultImage}`;
+const canonicalUrl = `${siteConfig.siteUrl}/blogs/uk/${slug}`;
+const postImage = `/images/blog/${slug}.jpg`;
 
 // Format dates for schema
 const publishedDate = post.date ? new Date(post.date).toISOString() : new Date().toISOString();
@@ -102,7 +102,7 @@ jsonLdSchemas.push(getArticleSchema({
 // Breadcrumb schema
 jsonLdSchemas.push(getBreadcrumbSchema([
   { name: 'Home', url: siteConfig.siteUrl },
-  { name: 'Blog', url: `${siteConfig.siteUrl}/blogs/` },
+  { name: 'Blog', url: `${siteConfig.siteUrl}/blogs/uk` },
   { name: post.title, url: canonicalUrl }
 ]));
 
@@ -135,7 +135,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
             <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/>
           </svg>
         </span>
-        <a href="/blogs/">Blogs</a>
+        <a href="/blogs/uk">Blogs</a>
         <span class="separator">
           <svg width="21" height="21" viewBox="0 0 256 512" fill="#00AEEF">
             <path d="M246.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 256c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l128-128z"/>
@@ -149,9 +149,9 @@ jsonLdSchemas.push(getBreadcrumbSchema([
         <!-- Left Column: Content (65%) -->
         <article class="blog-content">
           <!-- Featured Image -->
-          {(post.localFeaturedImage || post.featuredImage) && (
+          {post.slug && (
             <div class="featured-image">
-              <img src={post.localFeaturedImage || post.featuredImage} alt={post.title} />
+              <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} />
             </div>
           )}
 
@@ -204,10 +204,10 @@ jsonLdSchemas.push(getBreadcrumbSchema([
               <h4 class="sidebar-heading">Related Posts</h4>
               <div class="related-list">
                 {relatedPosts.map((rp) => (
-                  <a href={`/blogs/${rp.slug}/`} class="related-item">
-                    {(rp.localFeaturedImage || rp.featuredImage) && (
+                  <a href={`/blogs/uk/${rp.slug}`} class="related-item">
+                    {rp.slug && (
                       <div class="related-thumb">
-                        <img src={rp.localFeaturedImage || rp.featuredImage} alt={rp.title} loading="lazy" />
+                        <img src={`/images/blog/${rp.slug}.jpg`} alt={rp.title} loading="lazy" />
                       </div>
                     )}
                     <div class="related-info">

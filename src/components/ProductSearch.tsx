@@ -56,7 +56,15 @@ export default function ProductSearch({
       const data = await response.json();
 
       if (data.success && data.data.length > 0) {
-        setResults(data.data);
+        // Fix thumbnail URLs to use correct worker domain
+        const fixedResults = data.data.map((product: SearchResult) => ({
+          ...product,
+          thumbnail: product.thumbnail?.replace(
+            'hercules-product-sync-uk.workers.dev',
+            'hercules-product-sync-uk.gilles-86d.workers.dev'
+          ) || ''
+        }));
+        setResults(fixedResults);
         setNoResults(false);
       } else {
         setResults([]);

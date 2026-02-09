@@ -1,10 +1,10 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
 import {
   siteConfig,
   getCollectionPageSchema,
   getBreadcrumbSchema
-} from '../../config/seo';
+} from '../../../config/seo';
 
 const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
 
@@ -32,7 +32,7 @@ function formatDate(dateStr: string) {
 // SEO configuration
 const pageTitle = 'Blog';
 const pageDescription = 'Discover the latest news, tips and insights about custom fan scarves, merchandise and more.';
-const canonicalUrl = `${siteConfig.siteUrl}/blogs/`;
+const canonicalUrl = `${siteConfig.siteUrl}/blogs/uk`;
 
 // Generate JSON-LD schemas
 const jsonLdSchemas = [];
@@ -58,15 +58,25 @@ jsonLdSchemas.push(getBreadcrumbSchema([
   jsonLd={jsonLdSchemas}
 >
   <!-- Breadcrumb -->
-  <div class="breadcrumb-section">
+  <section class="breadcrumb-section">
     <div class="container">
-      <nav class="breadcrumb">
-        <a href="/">Home</a>
-        <span class="separator"><svg xmlns="http://www.w3.org/2000/svg" width="6" height="12" viewBox="0 0 6 12" fill="none"><path d="M6 6L0.75 11.1962L0.75 0.803848L6 6Z" fill="#469ADC"></path></svg></span>
-        <span class="current">Blog</span>
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <ol itemscope itemtype="https://schema.org/BreadcrumbList">
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="/" itemprop="item">
+              <span itemprop="name">Home</span>
+            </a>
+            <meta itemprop="position" content="1" />
+            <span class="separator"><img src="/images/breadcrumb-separator.svg" alt="" width="6" height="12" /></span>
+          </li>
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <span itemprop="name">Blog</span>
+            <meta itemprop="position" content="2" />
+          </li>
+        </ol>
       </nav>
     </div>
-  </div>
+  </section>
 
   <!-- Page Header -->
   <section class="blog-header">
@@ -81,11 +91,11 @@ jsonLdSchemas.push(getBreadcrumbSchema([
       <div class="posts-grid">
         {posts.map((post) => (
           <article class="post-card">
-            <a href={`/blogs/${post.slug}`} class="post-link">
-              {post.featuredImage && (
+            <a href={`/blogs/uk/${post.slug}`} class="post-link">
+              {post.slug && (
                 <div class="post-image">
                   <img
-                    src={post.featuredImage}
+                    src={`/images/blog/${post.slug}.jpg`}
                     alt={post.title}
                     loading="lazy"
                   />
@@ -108,43 +118,52 @@ jsonLdSchemas.push(getBreadcrumbSchema([
 <style>
   .breadcrumb-section {
     background: #FAFAFA;
-    padding: 20px 0;
+    padding: 15px 0;
   }
 
   .container {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 0;
+    padding: 0 20px;
   }
 
   .breadcrumb {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Jost', sans-serif;
     font-size: 14px;
-    color: #5F5F5F;
+  }
+
+  .breadcrumb ol {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .breadcrumb li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .breadcrumb a {
+    color: #787878;
     text-decoration: none;
-    font-size: 14px;
+    transition: color 0.2s;
   }
 
   .breadcrumb a:hover {
     color: #469ADC;
   }
 
-  .breadcrumb .separator {
-    display: inline-flex;
-    align-items: center;
-    margin: 0 10px;
-  }
-
-  .breadcrumb .separator svg {
-    width: 6px;
-    height: 12px;
-  }
-
-  .breadcrumb .current {
+  .breadcrumb li:last-child span {
     color: #469ADC;
+  }
+
+  .breadcrumb .separator {
+    display: flex;
+    align-items: center;
   }
 
   .blog-header {

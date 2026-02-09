@@ -315,14 +315,17 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     config.addons
       .filter(a => a.parent_id === 0)
       .forEach(parent => {
-        visible.push(parent);
+        // Only include addon if it has valid options array
+        if (Array.isArray(parent.options) && parent.options.length > 0) {
+          visible.push(parent);
+        }
 
         // Find child if parent selection matches visible_if_option
         const child = config.addons.find(
           a => a.parent_id === parent.id && selectedAddons[parent.id] === a.visible_if_option
         );
 
-        if (child) {
+        if (child && Array.isArray(child.options) && child.options.length > 0) {
           visible.push(child);
 
           // Find grandchild
@@ -330,7 +333,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             a => a.parent_id === child.id && selectedAddons[child.id] === a.visible_if_option
           );
 
-          if (grandchild) {
+          if (grandchild && Array.isArray(grandchild.options) && grandchild.options.length > 0) {
             visible.push(grandchild);
           }
         }
@@ -703,7 +706,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             {isExpanded && (
               <div className="kd-step-collapse">
                 {/* Image Selector for addons */}
-                {addon.display_type === 'image_selector' && (
+                {addon.display_type === 'image_selector' && Array.isArray(addon.options) && (
                   <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: '20px' }}>
                     {addon.options.map(option => (
                       <div
@@ -737,7 +740,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 )}
 
                 {/* Dropdown for addons */}
-                {addon.display_type === 'dropdown' && (
+                {addon.display_type === 'dropdown' && Array.isArray(addon.options) && (
                   <select
                     value={typeof selectedValue === 'string' ? selectedValue : ''}
                     onChange={e => handleAddonSelect(addon.id, e.target.value, stepIndex)}
@@ -751,7 +754,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 )}
 
                 {/* Multiple Choice (checkboxes) for addons like Zubehör - auto-advances on selection */}
-                {addon.display_type === 'multiple_choise' && (() => {
+                {addon.display_type === 'multiple_choise' && Array.isArray(addon.options) && (() => {
                   const currentSelected = Array.isArray(selectedValue) ? selectedValue : (selectedValue ? [selectedValue] : []);
                   const isNoneChecked = currentSelected.includes('None');
 
@@ -812,7 +815,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 })()}
 
                 {/* Select Boxes for addons */}
-                {addon.display_type === 'select_boxes' && (
+                {addon.display_type === 'select_boxes' && Array.isArray(addon.options) && (
                   <div className="box-selector" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     {addon.options.map(option => (
                       <div

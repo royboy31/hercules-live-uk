@@ -843,14 +843,23 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
 
     // Update product index with full list on first batch
     if (offset === 0) {
-      const productIndex = allProducts.map(p => ({
-        id: p.id,
-        name: p.name,
-        slug: p.slug,
-        featured: p.featured,
-        categories: p.categories.map(c => c.slug),
-        menu_order: p.menu_order || 0,
-      }));
+      const productIndex = allProducts.map(p => {
+        // Extract badge data from WooCommerce meta_data
+        const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
+        const madeInEurope = getMeta('made_in_europe');
+        const greenProduct = getMeta('green_product');
+
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          featured: p.featured,
+          categories: p.categories.map(c => c.slug),
+          menu_order: p.menu_order || 0,
+          made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
+          green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
+        };
+      });
       await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
     }
 
@@ -989,6 +998,8 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
       featured: product.featured,
       categories: product.categories.map(c => c.slug),
       menu_order: product.menu_order || 0,
+      made_in_europe: syncedProduct.made_in_europe || false,
+      green_product: syncedProduct.green_product || false,
     };
 
     if (existingIndex >= 0) {
@@ -2220,6 +2231,26 @@ export default {
           }
 
           const config = await response.json();
+
+          // Normalize addon options: convert object-based options to arrays
+          // WordPress returns different formats:
+          // - Most addons: options as ARRAY
+          // - multiple_choise addons: options as OBJECT with numeric keys
+          if (config.addons && Array.isArray(config.addons)) {
+            config.addons = config.addons.map((addon: any) => {
+              // If options exists and is an object (not an array), convert to array
+              if (addon.options && typeof addon.options === 'object' && !Array.isArray(addon.options)) {
+                // Convert object to array of values
+                addon.options = Object.values(addon.options);
+              }
+              // Ensure options is always an array (even if empty)
+              if (!Array.isArray(addon.options)) {
+                addon.options = [];
+              }
+              return addon;
+            });
+          }
+
           configStr = JSON.stringify(config);
 
           // Try to cache in KV (non-blocking - continue even if cache fails)
