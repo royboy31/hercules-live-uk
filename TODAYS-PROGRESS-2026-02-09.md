@@ -197,13 +197,38 @@ npx wrangler pages deploy dist --project-name=hercules-uk-staging --commit-dirty
 **Status**: ✅ Badges now display in English
 
 #### 3. Uploaded to WordPress Server ✅
+
+**Initial Upload** (Simple badges - incorrect):
 ```bash
 ssh combel-uk "mkdir -p staging.hercules-merchandise.co.uk/images/badges"
 scp badges/green-option.svg combel-uk:staging.hercules-merchandise.co.uk/images/badges/
 scp badges/made-in-europe.svg combel-uk:staging.hercules-merchandise.co.uk/images/badges/
 ```
 
-**Status**: ✅ WordPress site now also displays English badges
+**Issue Found**: Initial badges were simple 120×120px designs, not matching professional live site badges.
+
+**Second Upload** (Professional badges - correct):
+```bash
+# Downloaded professional badges from live UK site URLs:
+# - https://hercules-merchandise.co.uk/wp-content/uploads/2025/08/Green-Option.svg (402×612px)
+# - https://hercules-merchandise.co.uk/wp-content/uploads/2025/08/made-in-EU.svg (665×665px)
+
+# Re-uploaded professional badges
+scp /home/kamindu/hercules-headless-uk/public/images/badges/green-option.svg combel-uk:staging.hercules-merchandise.co.uk/images/badges/
+scp /home/kamindu/hercules-headless-uk/public/images/badges/made-in-europe.svg combel-uk:staging.hercules-merchandise.co.uk/images/badges/
+```
+
+**Verification**:
+```bash
+# Confirmed professional badges are now served
+curl -s "https://staging.hercules-merchandise.co.uk/images/badges/made-in-europe.svg" | head -1
+# Output: <svg xmlns="http://www.w3.org/2000/svg" width="665" height="665"...
+
+curl -s "https://staging.hercules-merchandise.co.uk/images/badges/green-option.svg" | head -1
+# Output: <svg xmlns="http://www.w3.org/2000/svg" width="402" height="612"...
+```
+
+**Status**: ✅ WordPress staging now serves professional English badges matching live site exactly
 
 ### Verification
 
@@ -243,14 +268,16 @@ The badge display system was already working correctly:
 
 ### Completed Tasks
 1. ✅ **Baseball Cap Investigation**: Identified missing addon data as root cause, applied defensive fixes
-2. ✅ **Badge Language Fix**: Replaced German badge SVGs with English versions on both Astro and WordPress sites
+2. ✅ **Badge Language Fix**: Replaced German badge SVGs with professional English versions matching live site exactly on both Astro and WordPress sites
 3. ✅ **Product Index Enhancement**: Badge data extraction and display system verified working
 4. ✅ **Documentation**: Updated progress files and created verification reports
 
 ### Deployments
-- **Astro Site**: https://96a8cbb8.hercules-uk-staging-e9z.pages.dev (with English badges)
+- **Astro Site**: Professional badges committed to Git repository (GitHub Actions deployment pending API token setup)
 - **Product Sync**: Working correctly with badge data included
-- **WordPress**: Badge assets updated
+- **WordPress Staging**: Professional badge assets uploaded and verified serving correctly
+  - Made in Europe: 665×665px (https://staging.hercules-merchandise.co.uk/images/badges/made-in-europe.svg)
+  - Green Option: 402×612px (https://staging.hercules-merchandise.co.uk/images/badges/green-option.svg)
 
 ### Time Spent
 - Baseball cap investigation: ~2.5 hours
