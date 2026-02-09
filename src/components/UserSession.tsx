@@ -151,11 +151,46 @@ export default function UserSession({ type }: UserSessionProps) {
       fetchUserSession();
     }
 
-    // Refresh cart on tab visibility change
-    const handleVisibilityChange = () => {
+    // Sync cart from server
+    const syncCartFromServer = async () => {
+      try {
+        const baseUrl = getBaseUrl();
+        const response = await fetch(`${baseUrl}/wp-json/hercules/v1/session`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.cart) {
+            const currentCart = cartStore.get();
+            // Only update if cart count changed (avoid unnecessary re-renders)
+            if (currentCart.count !== data.cart.count || currentCart.items.length !== data.cart.items.length) {
+              cartStore.set(data.cart);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[UserSession] Failed to sync cart from server:', err);
+      }
+    };
+
+    // Refresh cart on tab visibility change AND from server
+    const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         // Re-read from localStorage (might have changed in another tab)
         setCart(cartStore.get());
+        // Sync from server (might have changed on WordPress pages)
+        await syncCartFromServer();
+      }
+    };
+
+    // Sync cart on page show (handles back/forward navigation)
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // Page was loaded from bfcache, sync cart
+        syncCartFromServer();
       }
     };
 
@@ -166,13 +201,24 @@ export default function UserSession({ type }: UserSessionProps) {
       }
     };
 
+    // Periodic cart sync every 30 seconds (for cart icon types only)
+    let syncInterval: NodeJS.Timeout | null = null;
+    if (type === 'cart' || type === 'cart-count') {
+      syncInterval = setInterval(() => {
+        syncCartFromServer();
+      }, 30000); // 30 seconds
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pageshow', handlePageShow);
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
       unsubscribe();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
       document.removeEventListener('mousedown', handleClickOutside);
+      if (syncInterval) clearInterval(syncInterval);
     };
   }, [type]);
 
