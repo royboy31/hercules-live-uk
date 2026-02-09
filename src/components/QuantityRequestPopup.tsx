@@ -304,13 +304,26 @@ export default function QuantityRequestPopup({
                   <label>
                     Attach Files (JPG, PNG, PDF — max. 10 files, 20 MB total)
                   </label>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept=".jpg,.jpeg,.png,.pdf"
-                    multiple
-                    onChange={handleFileChange}
-                  />
+                  <div className="kd-file-upload-wrapper">
+                    <input
+                      type="file"
+                      id="quantity-files"
+                      ref={fileInputRef}
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      multiple
+                      onChange={handleFileChange}
+                      className="kd-file-input-hidden"
+                    />
+                    <label htmlFor="quantity-files" className="kd-file-upload-button">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                      </svg>
+                      <span>Select Files</span>
+                    </label>
+                    <span className="kd-file-hint">Max. 20 MB total</span>
+                  </div>
                   {formData.files.length > 0 && (
                     <div className="kd-selected-files">
                       {formData.files.map((file, index) => (
@@ -552,24 +565,62 @@ export default function QuantityRequestPopup({
           margin-top: 15px;
         }
 
-        .kd-file-upload-section input[type="file"] {
+        .kd-file-upload-wrapper {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
           margin-top: 10px;
+        }
+
+        .kd-file-input-hidden {
+          display: none;
+        }
+
+        .kd-file-upload-button {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          background: #f5f5f5;
+          border: 1px dashed #DCDCDC;
+          border-radius: 10px;
           font-family: 'Jost', sans-serif;
+          font-size: 14px;
+          color: #253461;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .kd-file-upload-button:hover {
+          background: #e8e8e8;
+          border-color: #469ADC;
+          color: #469ADC;
+        }
+
+        .kd-file-hint {
+          font-family: 'Jost', sans-serif;
+          font-size: 12px;
+          color: #8D8D8D;
         }
 
         .kd-selected-files {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
           margin-top: 10px;
-          font-size: 13px;
         }
 
         .kd-file-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 5px 10px;
+          padding: 8px 12px;
           background: #f5f5f5;
-          border-radius: 5px;
-          margin-bottom: 5px;
+          border-radius: 8px;
+          font-family: 'Jost', sans-serif;
+          font-size: 13px;
+          color: #253461;
         }
 
         .kd-file-item button {
@@ -579,6 +630,7 @@ export default function QuantityRequestPopup({
           font-size: 18px;
           cursor: pointer;
           padding: 0 5px;
+          line-height: 1;
         }
 
         /* Error Message */

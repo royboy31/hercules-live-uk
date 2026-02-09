@@ -408,19 +408,32 @@ export default function ExpressDeliveryPopup({
             {/* Row 4: File Upload */}
             <div className="kd-col-100" style={{ marginTop: '15px' }}>
               <label>Attach Files (max. 10, 20 MB total)</label>
-              <br />
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept=".jpg,.jpeg,.png,.pdf"
-                multiple
-                onChange={handleFileChange}
-                style={{ marginTop: '10px' }}
-              />
+              <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="file"
+                  id="urgent-files"
+                  ref={fileInputRef}
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  multiple
+                  onChange={handleFileChange}
+                  className="urgent-file-input"
+                />
+                <label htmlFor="urgent-files" className="urgent-file-label">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <span>Select Files</span>
+                </label>
+                <span className="urgent-file-hint">JPG, PNG, PDF only</span>
+              </div>
               {formData.files.length > 0 && (
-                <div style={{ fontSize: '13px', marginTop: '5px' }}>
+                <div className="urgent-file-list">
                   {formData.files.map((file, index) => (
-                    <div key={index}>✔ {file.name}</div>
+                    <div key={index} className="urgent-file-item">
+                      <span>✔ {file.name}</span>
+                    </div>
                   ))}
                 </div>
               )}
@@ -596,6 +609,56 @@ export default function ExpressDeliveryPopup({
           .kd-col-50 {
             width: 100%;
           }
+        }
+
+        /* File Upload Styling */
+        .urgent-file-input {
+          display: none;
+        }
+
+        .urgent-file-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px;
+          background: #f5f5f5;
+          border: 1px dashed #DCDCDC;
+          border-radius: 10px;
+          font-family: 'Jost', sans-serif;
+          font-size: 14px;
+          color: #253461;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .urgent-file-label:hover {
+          background: #e8e8e8;
+          border-color: #469ADC;
+          color: #469ADC;
+        }
+
+        .urgent-file-hint {
+          font-family: 'Jost', sans-serif;
+          font-size: 12px;
+          color: #8D8D8D;
+        }
+
+        .urgent-file-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .urgent-file-item {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          background: #f5f5f5;
+          border-radius: 8px;
+          font-family: 'Jost', sans-serif;
+          font-size: 13px;
+          color: #253461;
         }
       `}</style>
     </>
