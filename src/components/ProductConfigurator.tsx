@@ -355,7 +355,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     }) || null;
   }, [config, selectedAttributes]);
 
-  // Calculate quantity range
+  // Calculate quantity range — adjusts min based on selected addon price_table minimums
   const quantityRange = useMemo(() => {
     const prices = matchedVariation?.conditional_prices || config?.variations?.[0]?.conditional_prices;
     if (!prices?.length) {
@@ -363,11 +363,43 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     }
 
     const qtys = prices.map(p => parseFloatSafe(p.qty));
-    return {
-      min: Math.min(...qtys),
-      max: Math.max(...qtys),
-    };
-  }, [matchedVariation, config]);
+    let minQty = Math.min(...qtys);
+    let maxQty = Math.max(...qtys);
+
+    // Raise minimum based on selected addon price_table minimums
+    // e.g. "Woven patch" starts at qty 100, so min becomes 100
+    for (const addon of visibleAddons) {
+      const selected = selectedAddons[addon.id];
+      if (!selected) continue;
+      const selectedNames = Array.isArray(selected) ? selected : [selected];
+      for (const name of selectedNames) {
+        if (name === 'None') continue;
+        const option = addon.options.find(o => o.name === name);
+        if (option && Array.isArray(option.price_table) && option.price_table.length > 0) {
+          const firstQty = parseFloatSafe(option.price_table[0].qty);
+          if (firstQty > 0) {
+            minQty = Math.max(minQty, firstQty);
+          }
+          const lastQty = parseFloatSafe(option.price_table[option.price_table.length - 1].qty);
+          if (lastQty > 0) {
+            maxQty = Math.max(maxQty, lastQty);
+          }
+        }
+      }
+    }
+
+    return { min: minQty, max: maxQty };
+  }, [matchedVariation, config, visibleAddons, selectedAddons]);
+
+  // Reset quantity when addon changes push the minimum above current selection
+  useEffect(() => {
+    if (quantitySelected > 0 && quantitySelected < quantityRange.min) {
+      setQuantitySelected(0);
+      setTempQuantity(quantityRange.min);
+    } else if (tempQuantity < quantityRange.min) {
+      setTempQuantity(quantityRange.min);
+    }
+  }, [quantityRange.min]);
 
   // Calculate final price - uses WordPress combined-tier interpolation
   const priceInfo = useMemo(() => {
@@ -868,8 +900,10 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
           {maxVisibleStep === quantityStepIndex && (
             <div className="kd-step-collapse">
-              {/* Quantity tier options */}
-              {(matchedVariation?.conditional_prices || config.variations?.[0]?.conditional_prices || []).map((tier, idx) => {
+              {/* Quantity tier options — filtered by addon minimum qty */}
+              {(matchedVariation?.conditional_prices || config.variations?.[0]?.conditional_prices || [])
+                .filter(tier => parseFloatSafe(tier.qty) >= quantityRange.min)
+                .map((tier, idx, filteredTiers) => {
                 const tierQty = parseFloatSafe(tier.qty);
                 const tierPrice = parseFloatSafe(tier.price);
 
@@ -882,11 +916,11 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 }
                 const totalPrice = tierPrice + addonPrice;
 
-                // Calculate savings percentage vs first tier
-                const pricesArray = matchedVariation?.conditional_prices || config.variations?.[0]?.conditional_prices || [];
-                const firstTier = pricesArray[0];
-                const firstPrice = firstTier ? parseFloatSafe(firstTier.price) + (visibleAddons.reduce((sum, addon) =>
-                  sum + (selectedAddons[addon.id] ? getAddonPriceAtTierQty(addon, selectedAddons[addon.id], parseFloatSafe(firstTier.qty)) : 0), 0)) : 0;
+                // Calculate savings percentage vs first visible tier
+                const firstTier = filteredTiers[0];
+                const firstTierQty = parseFloatSafe(firstTier.qty);
+                const firstPrice = parseFloatSafe(firstTier.price) + (visibleAddons.reduce((sum, addon) =>
+                  sum + (selectedAddons[addon.id] ? getAddonPriceAtTierQty(addon, selectedAddons[addon.id], firstTierQty) : 0), 0));
                 const savings = firstPrice > 0 ? Math.round((1 - totalPrice / firstPrice) * 100) : 0;
 
                 return (
