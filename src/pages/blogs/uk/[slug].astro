@@ -78,7 +78,7 @@ const metaDescription = post.excerpt
   : truncateDescription(post.title);
 
 const canonicalUrl = `${siteConfig.siteUrl}/blogs/uk/${slug}`;
-const postImage = `/images/blog/${slug}.jpg`;
+const postImage = post.featuredImage || post.localFeaturedImage || '';
 
 // Format dates for schema
 const publishedDate = post.date ? new Date(post.date).toISOString() : new Date().toISOString();
@@ -149,9 +149,9 @@ jsonLdSchemas.push(getBreadcrumbSchema([
         <!-- Left Column: Content (65%) -->
         <article class="blog-content">
           <!-- Featured Image -->
-          {post.slug && (
+          {postImage && (
             <div class="featured-image">
-              <img src={`/images/blog/${post.slug}.jpg`} alt={post.title} />
+              <img src={postImage} alt={post.title} />
             </div>
           )}
 
@@ -205,9 +205,9 @@ jsonLdSchemas.push(getBreadcrumbSchema([
               <div class="related-list">
                 {relatedPosts.map((rp) => (
                   <a href={`/blogs/uk/${rp.slug}`} class="related-item">
-                    {rp.slug && (
+                    {rp.featuredImage && (
                       <div class="related-thumb">
-                        <img src={`/images/blog/${rp.slug}.jpg`} alt={rp.title} loading="lazy" />
+                        <img src={rp.featuredImage} alt={rp.title} loading="lazy" />
                       </div>
                     )}
                     <div class="related-info">
