@@ -336,7 +336,7 @@ function getEmailHeader(): string {
           <span style="display:inline-block; margin-right:8px;">📧</span>
           <a href="mailto:info@hercules-merchandise.co.uk" style="color:#253461; text-decoration:none;">info@hercules-merchandise.co.uk</a><br>
           <span style="display:inline-block; margin-right:8px;">☎</span>
-          <a href="tel:+441onal" style="color:#253461; text-decoration:none;">Contact Us</a>
+          <a href="tel:+442039664881" style="color:#253461; text-decoration:none;">(+44) 0203 9664881</a>
         </td>
       </tr>
     </table>
@@ -346,7 +346,7 @@ function getEmailHeader(): string {
 function getEmailFooter(): string {
   return `
     <div style="background:#f5f5f5; font-size:13px; color:#777; text-align:center; padding:20px 40px; line-height:1.6; margin-top:30px;">
-      <p>If you have any questions, simply reply to this email or <a href="${SITE_URL}/contact/" style="color:#253461; text-decoration:none;">contact us here</a>.</p>
+      <p>If you have any questions, simply reply to this email or <a href="${SITE_URL}/contact-us/" style="color:#253461; text-decoration:none;">contact us here</a>.</p>
       <div style="margin-top:0; font-size:12px; text-align:center; color:#999;">
         <p>
           <a href="${SITE_URL}" style="color:#253461; text-decoration:none;"><strong>Hercules Merchandise UK</strong></a>
@@ -355,6 +355,7 @@ function getEmailFooter(): string {
           <strong style="color:#000;"> | </strong>
           <a href="${SITE_URL}/my-account/" style="color:#253461; text-decoration:none;"><strong>Your Account</strong></a><br>
           📧 <a href="mailto:info@hercules-merchandise.co.uk" style="color:#253461; text-decoration:none;">info@hercules-merchandise.co.uk</a><br>
+          ☎ <a href="tel:+442039664881" style="color:#253461; text-decoration:none;">(+44) 0203 9664881</a><br>
           🌐 <a href="${SITE_URL}" style="color:#253461; text-decoration:none;">${SITE_URL}</a>
         </p>
       </div>
@@ -588,7 +589,7 @@ function getQuantityRequestEmailHtml(data: {
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px;">
       <tr>
         <td style="text-align:right;">
-          <a class="btn btn-green" href="${SITE_URL}/contact/" style="margin-left:10px;">Contact us</a>
+          <a class="btn btn-green" href="${SITE_URL}/contact-us/" style="margin-left:10px;">Contact us</a>
         </td>
       </tr>
     </table>

@@ -44,6 +44,14 @@ try {
   console.error('Error fetching related posts:', error);
 }
 
+// Clean broken emoji ? characters from WordPress content
+// (MySQL utf8 encoding drops 4-byte emojis to ?)
+function cleanContent(html: string): string {
+  // Remove lone ? at the start of headings (broken emojis)
+  // e.g. "? 1. Keep Colours Simple" -> "1. Keep Colours Simple"
+  return html.replace(/(<h[1-6][^>]*>)\s*\?\s*/gi, '$1');
+}
+
 // Format date for display (UK format: "26 July 2025")
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -161,7 +169,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
           </div>
 
           <!-- Post Content -->
-          <div class="post-body" set:html={post.content} />
+          <div class="post-body" set:html={cleanContent(post.content)} />
 
           <!-- Share Section -->
           <div class="share-section">
@@ -205,9 +213,9 @@ jsonLdSchemas.push(getBreadcrumbSchema([
               <div class="related-list">
                 {relatedPosts.map((rp) => (
                   <a href={`/blogs/uk/${rp.slug}`} class="related-item">
-                    {rp.featuredImage && (
+                    {rp.slug && (
                       <div class="related-thumb">
-                        <img src={rp.featuredImage} alt={rp.title} loading="lazy" />
+                        <img src={`${WORKER_URL}/post-image/${rp.slug}`} alt={rp.title} loading="lazy" />
                       </div>
                     )}
                     <div class="related-info">

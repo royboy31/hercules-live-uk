@@ -92,10 +92,10 @@ jsonLdSchemas.push(getBreadcrumbSchema([
         {posts.map((post) => (
           <article class="post-card">
             <a href={`/blogs/uk/${post.slug}`} class="post-link">
-              {post.featuredImage && (
+              {post.slug && (
                 <div class="post-image">
                   <img
-                    src={post.featuredImage}
+                    src={`${WORKER_URL}/post-image/${post.slug}`}
                     alt={post.title}
                     loading="lazy"
                   />

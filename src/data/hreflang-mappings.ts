@@ -279,31 +279,64 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
   } else if (pageType === 'collection') {
     const match = dePath.match(/^\/collections\/([^/]+)\/?$/);
     if (match) {
-      const deSlug = match[1];
-      const mapping = CATEGORY_MAPPINGS[deSlug];
-      if (mapping) {
-        result.de = `${DOMAINS.de}/collections/${mapping.de}/`;
-        result.en = `${DOMAINS.en}/collections/${mapping.en}/`;
-        result.fr = `${DOMAINS.fr}/collections/${mapping.fr}/`;
+      const slug = match[1];
+      // Try direct lookup (DE slug as key)
+      const directMapping = CATEGORY_MAPPINGS[slug];
+      if (directMapping) {
+        result.de = `${DOMAINS.de}/collections/${directMapping.de}/`;
+        result.en = `${DOMAINS.en}/collections/${directMapping.en}/`;
+        result.fr = `${DOMAINS.fr}/collections/${directMapping.fr}/`;
       } else {
-        // Fallback to shop for unmapped categories
-        result.en = `${DOMAINS.en}/shop/`;
-        result.fr = `${DOMAINS.fr}/boutique/`;
+        // Reverse lookup: find by EN slug
+        let found = false;
+        for (const [, mapping] of Object.entries(CATEGORY_MAPPINGS)) {
+          if (mapping.en === slug) {
+            result.de = `${DOMAINS.de}/collections/${mapping.de}/`;
+            result.en = `${DOMAINS.en}/collections/${mapping.en}/`;
+            result.fr = `${DOMAINS.fr}/collections/${mapping.fr}/`;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          result.de = `${DOMAINS.de}/collections/${slug}/`;
+          result.fr = `${DOMAINS.fr}/collections/${slug}/`;
+        }
       }
     }
   } else if (pageType === 'product') {
-    const match = dePath.match(/^\/produkte\/([^/]+)\/?$/);
-    if (match) {
-      const deSlug = match[1];
+    // Try matching DE path (/produkte/) first, then EN path (/products/)
+    const deMatch = dePath.match(/^\/produkte\/([^/]+)\/?$/);
+    const enMatch = dePath.match(/^\/products\/([^/]+)\/?$/);
+
+    if (deMatch) {
+      const deSlug = deMatch[1];
       const mapping = PRODUCT_MAPPINGS[deSlug];
       if (mapping) {
         result.de = `${DOMAINS.de}/products/${mapping.de}/`;
         result.en = `${DOMAINS.en}/products/${mapping.en}/`;
         result.fr = `${DOMAINS.fr}/products/${mapping.fr}/`;
       } else {
-        // Fallback to shop for unmapped products
         result.en = `${DOMAINS.en}/shop/`;
         result.fr = `${DOMAINS.fr}/boutique/`;
+      }
+    } else if (enMatch) {
+      // Reverse lookup: find DE slug by EN slug
+      const enSlug = enMatch[1];
+      let found = false;
+      for (const [deSlug, mapping] of Object.entries(PRODUCT_MAPPINGS)) {
+        if (mapping.en === enSlug) {
+          result.de = `${DOMAINS.de}/products/${mapping.de}/`;
+          result.en = `${DOMAINS.en}/products/${mapping.en}/`;
+          result.fr = `${DOMAINS.fr}/products/${mapping.fr}/`;
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        // Keep same slug for all if no mapping found
+        result.de = `${DOMAINS.de}/products/${enSlug}/`;
+        result.fr = `${DOMAINS.fr}/products/${enSlug}/`;
       }
     }
   } else if (pageType === 'blog') {

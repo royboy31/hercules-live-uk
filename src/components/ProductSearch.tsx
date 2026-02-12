@@ -143,9 +143,6 @@ export default function ProductSearch({
                   )}
                   <div className="product-info">
                     <div className="product-title">{product.title}</div>
-                    {product.price && (
-                      <div className="product-price">{product.price}</div>
-                    )}
                   </div>
                 </a>
               </li>
@@ -281,13 +278,6 @@ export default function ProductSearch({
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
-        }
-
-        .product-price {
-          font-family: 'Jost', sans-serif;
-          font-size: 15px;
-          font-weight: 600;
-          color: #1598d7;
         }
 
         .product-search-no-results {

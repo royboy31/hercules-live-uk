@@ -1,6 +1,6 @@
 /**
- * Google Apps Script for Hercules Contact Form & Newsletter
- * Version: 2.0.0 - With R2 File URL Support
+ * Google Apps Script for Hercules UK Contact Form & Newsletter
+ * Version: 3.0.0 - English tab names and headers for UK site
  *
  * SETUP INSTRUCTIONS:
  * 1. Go to https://script.google.com
@@ -14,8 +14,8 @@
  * 9. Click Deploy and copy the Web App URL
  * 10. Set GOOGLE_APPS_SCRIPT_URL secret in Cloudflare Worker
  *
- * MIGRATION: Run migrateAllSheets() once from the script editor to add
- * the "Dateien" column to any existing sheets that are missing it.
+ * MIGRATION FROM v2 (German): Run migrateToEnglish() once from the script
+ * editor to rename existing German sheets/headers to English.
  */
 
 // ============================================================================
@@ -27,81 +27,109 @@
 const SPREADSHEET_ID = '1s97QbIkSByUbOmA5fwiMxEPXjyxG9ofcZSv3mEMuJPo';
 
 // Sheet names
-const CONTACT_SHEET_NAME = 'Kontaktanfragen';
+const CONTACT_SHEET_NAME = 'Contact Enquiries';
 const NEWSLETTER_SHEET_NAME = 'Newsletter';
-const QUANTITY_REQUEST_SHEET_NAME = 'Mengenanfragen';
-const EXPRESS_DELIVERY_SHEET_NAME = 'Expresslieferung';
+const QUANTITY_REQUEST_SHEET_NAME = 'Quantity Requests';
+const EXPRESS_DELIVERY_SHEET_NAME = 'Express Delivery';
+
+// Old German sheet names (for migration)
+const OLD_SHEET_NAMES = {
+  'Kontaktanfragen': 'Contact Enquiries',
+  'Mengenanfragen': 'Quantity Requests',
+  'Expresslieferung': 'Express Delivery',
+  // Newsletter stays the same
+};
+
+// Old German headers mapped to new English headers (for migration)
+const OLD_HEADERS_MAP = {
+  'Datum': 'Date',
+  'Uhrzeit': 'Time',
+  'Telefon': 'Phone',
+  'Nachricht': 'Message',
+  'Dateien': 'Files',
+  'Seite': 'Page',
+  'Zeitstempel': 'Timestamp',
+  'Vorname': 'First Name',
+  'Nachname': 'Last Name',
+  'Produkt ID': 'Product ID',
+  'Produktname': 'Product Name',
+  'Menge': 'Quantity',
+  'Stückpreis': 'Price Per Piece',
+  'Seiten-URL': 'Page URL',
+  'Quelle': 'Source',
+  'Gewünschtes Lieferdatum': 'Desired Delivery Date',
+};
 
 // Column configurations for each sheet type
 const SHEET_CONFIGS = {
   contact: {
     name: CONTACT_SHEET_NAME,
     headers: [
-      'Datum',
-      'Uhrzeit',
+      'Date',
+      'Time',
       'Name',
       'Email',
-      'Telefon',
-      'Nachricht',
-      'Dateien',
-      'Seite',
+      'Phone',
+      'Message',
+      'Files',
+      'Page',
       'URL',
-      'Zeitstempel'
+      'Timestamp'
     ],
     filesColumnIndex: 7 // 1-based index
   },
   newsletter: {
     name: NEWSLETTER_SHEET_NAME,
     headers: [
-      'Datum',
-      'Uhrzeit',
+      'Date',
+      'Time',
       'Email',
-      'Quelle',
-      'Zeitstempel'
+      'Source',
+      'Timestamp'
     ],
     filesColumnIndex: null // No files column
   },
   quantity_request: {
     name: QUANTITY_REQUEST_SHEET_NAME,
     headers: [
-      'Datum',
-      'Uhrzeit',
-      'Vorname',
-      'Nachname',
+      'Date',
+      'Time',
+      'First Name',
+      'Last Name',
       'Email',
-      'Telefon',
-      'Produkt ID',
-      'Produktname',
-      'Menge',
-      'Stückpreis',
-      'Attribute',
+      'Phone',
+      'Product ID',
+      'Product Name',
+      'Quantity',
+      'Price Per Piece',
+      'Attributes',
       'Addons',
-      'Nachricht',
-      'Dateien',
-      'Seiten-URL',
-      'Zeitstempel'
+      'Message',
+      'Files',
+      'Page URL',
+      'Timestamp'
     ],
     filesColumnIndex: 14
   },
   expressdelivery: {
     name: EXPRESS_DELIVERY_SHEET_NAME,
     headers: [
-      'Datum',
-      'Uhrzeit',
+      'Date',
+      'Time',
       'Name',
       'Email',
-      'Telefon',
-      'Gewünschtes Lieferdatum',
-      'Produkt ID',
-      'Produktname',
-      'Menge',
-      'Stückpreis',
-      'Attribute',
+      'Phone',
+      'Desired Delivery Date',
+      'Product ID',
+      'Product Name',
+      'Quantity',
+      'Price Per Piece',
+      'Attributes',
       'Addons',
-      'Nachricht',
-      'Dateien',
-      'Seiten-URL',
-      'Zeitstempel'
+      'Message',
+      'Files',
+      'Page URL',
+      'Timestamp'
     ],
     filesColumnIndex: 14
   }
@@ -172,41 +200,41 @@ function getOrCreateSheet(spreadsheet, config) {
 
     // Set column widths for better readability
     if (config.name === QUANTITY_REQUEST_SHEET_NAME || config.name === EXPRESS_DELIVERY_SHEET_NAME) {
-      sheet.setColumnWidth(8, 200);  // Produktname wider
-      sheet.setColumnWidth(11, 200); // Attribute column wider
+      sheet.setColumnWidth(8, 200);  // Product Name wider
+      sheet.setColumnWidth(11, 200); // Attributes column wider
       sheet.setColumnWidth(12, 200); // Addons column wider
       sheet.setColumnWidth(13, 300); // Message column wider
-      sheet.setColumnWidth(14, 400); // Dateien column wider for URLs
+      sheet.setColumnWidth(14, 400); // Files column wider for URLs
     }
     if (config.name === CONTACT_SHEET_NAME) {
-      sheet.setColumnWidth(6, 300);  // Nachricht wider
-      sheet.setColumnWidth(7, 400);  // Dateien wider for URLs
+      sheet.setColumnWidth(6, 300);  // Message wider
+      sheet.setColumnWidth(7, 400);  // Files wider for URLs
     }
   } else {
-    // Check if "Dateien" column exists and add if missing
-    ensureDateienColumn(sheet, config);
+    // Check if "Files" column exists and add if missing
+    ensureFilesColumn(sheet, config);
   }
 
   return sheet;
 }
 
 /**
- * Ensure the "Dateien" column exists in an existing sheet
+ * Ensure the "Files" column exists in an existing sheet
  */
-function ensureDateienColumn(sheet, config) {
+function ensureFilesColumn(sheet, config) {
   if (!config.filesColumnIndex) return; // Sheet doesn't need files column
 
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const hasDateienColumn = headers.includes('Dateien');
+  const hasFilesColumn = headers.includes('Files') || headers.includes('Dateien');
 
-  if (!hasDateienColumn) {
-    // Insert "Dateien" column at the correct position
+  if (!hasFilesColumn) {
+    // Insert "Files" column at the correct position
     const insertPosition = config.filesColumnIndex;
     sheet.insertColumnBefore(insertPosition);
-    sheet.getRange(1, insertPosition).setValue('Dateien').setFontWeight('bold');
+    sheet.getRange(1, insertPosition).setValue('Files').setFontWeight('bold');
     sheet.setColumnWidth(insertPosition, 400); // Wide enough for URLs
 
-    console.log(`Added "Dateien" column to ${config.name} at position ${insertPosition}`);
+    console.log(`Added "Files" column to ${config.name} at position ${insertPosition}`);
   }
 }
 
@@ -220,8 +248,8 @@ function handleContact(spreadsheet, params) {
 
   // Add the contact data
   sheet.appendRow([
-    params.date || new Date().toLocaleDateString('de-DE'),
-    params.time || new Date().toLocaleTimeString('de-DE'),
+    params.date || new Date().toLocaleDateString('en-GB'),
+    params.time || new Date().toLocaleTimeString('en-GB'),
     params.name || '',
     params.email || '',
     params.phone || '',
@@ -233,7 +261,7 @@ function handleContact(spreadsheet, params) {
   ]);
 
   return ContentService
-    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Kontaktanfragen' }))
+    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Contact Enquiries' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -253,8 +281,8 @@ function handleNewsletter(spreadsheet, params) {
 
   // Add the newsletter subscription
   sheet.appendRow([
-    params.date || new Date().toLocaleDateString('de-DE'),
-    params.time || new Date().toLocaleTimeString('de-DE'),
+    params.date || new Date().toLocaleDateString('en-GB'),
+    params.time || new Date().toLocaleTimeString('en-GB'),
     params.email || '',
     params.source || '',
     new Date().toISOString()
@@ -280,8 +308,8 @@ function handleQuantityRequest(spreadsheet, params) {
 
   // Add the quantity request data
   sheet.appendRow([
-    params.date || new Date().toLocaleDateString('de-DE'),
-    params.time || new Date().toLocaleTimeString('de-DE'),
+    params.date || new Date().toLocaleDateString('en-GB'),
+    params.time || new Date().toLocaleTimeString('en-GB'),
     firstName,
     lastName,
     params.email || '',
@@ -299,7 +327,7 @@ function handleQuantityRequest(spreadsheet, params) {
   ]);
 
   return ContentService
-    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Mengenanfragen' }))
+    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Quantity Requests' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -309,8 +337,8 @@ function handleExpressDelivery(spreadsheet, params) {
 
   // Add the express delivery request data
   sheet.appendRow([
-    params.date || new Date().toLocaleDateString('de-DE'),
-    params.time || new Date().toLocaleTimeString('de-DE'),
+    params.date || new Date().toLocaleDateString('en-GB'),
+    params.time || new Date().toLocaleTimeString('en-GB'),
     params.name || '',
     params.email || '',
     params.phone || '',
@@ -328,16 +356,83 @@ function handleExpressDelivery(spreadsheet, params) {
   ]);
 
   return ContentService
-    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Expresslieferung' }))
+    .createTextOutput(JSON.stringify({ success: true, message: 'Data saved to Express Delivery' }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ============================================================================
-// MIGRATION FUNCTION - Run this once to add "Dateien" column to existing sheets
+// MIGRATION: German → English (Run once from script editor)
 // ============================================================================
 
 /**
- * Run this function manually from the script editor to migrate existing sheets.
+ * Migrate existing German sheet names and headers to English.
+ * Run this once from: Run > Run function > migrateToEnglish
+ *
+ * This will:
+ * 1. Rename tabs: Kontaktanfragen → Contact Enquiries, etc.
+ * 2. Rename column headers: Datum → Date, Telefon → Phone, etc.
+ * 3. Preserve all existing data rows
+ */
+function migrateToEnglish() {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  Logger.clear();
+  Logger.log('=== Migrating German sheets to English ===');
+  Logger.log('');
+
+  // Step 1: Rename sheet tabs
+  for (const [oldName, newName] of Object.entries(OLD_SHEET_NAMES)) {
+    const sheet = spreadsheet.getSheetByName(oldName);
+    if (sheet) {
+      sheet.setName(newName);
+      Logger.log('Renamed tab: "' + oldName + '" → "' + newName + '"');
+    } else {
+      Logger.log('Tab "' + oldName + '" not found (skipped)');
+    }
+  }
+  Logger.log('');
+
+  // Step 2: Rename column headers on each sheet
+  const allSheets = spreadsheet.getSheets();
+  for (const sheet of allSheets) {
+    const sheetName = sheet.getName();
+    const lastCol = sheet.getLastColumn();
+    if (lastCol === 0) continue;
+
+    const headerRange = sheet.getRange(1, 1, 1, lastCol);
+    const headers = headerRange.getValues()[0];
+    let changed = false;
+
+    for (let i = 0; i < headers.length; i++) {
+      const oldHeader = headers[i];
+      if (OLD_HEADERS_MAP[oldHeader]) {
+        headers[i] = OLD_HEADERS_MAP[oldHeader];
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      headerRange.setValues([headers]);
+      Logger.log('Updated headers in "' + sheetName + '": ' + headers.join(', '));
+    } else {
+      Logger.log('No header changes needed in "' + sheetName + '"');
+    }
+  }
+
+  Logger.log('');
+  Logger.log('=== Migration complete! ===');
+  Logger.log('');
+  Logger.log('Next: Deploy > Manage deployments > Edit > New version > Deploy');
+
+  return 'Migration complete. Check the execution log for details.';
+}
+
+// ============================================================================
+// LEGACY MIGRATION - Add "Files" column to sheets missing it
+// ============================================================================
+
+/**
+ * Run this function manually from the script editor to add Files column.
  * Go to: Run > Run function > migrateAllSheets
  */
 function migrateAllSheets() {
@@ -355,7 +450,7 @@ function migrateAllSheets() {
     const sheet = spreadsheet.getSheetByName(config.name);
     if (sheet) {
       console.log(`Checking ${config.name}...`);
-      ensureDateienColumn(sheet, config);
+      ensureFilesColumn(sheet, config);
     } else {
       console.log(`Sheet ${config.name} does not exist yet - will be created on first submission`);
     }
@@ -363,7 +458,6 @@ function migrateAllSheets() {
 
   console.log('Migration complete!');
 
-  // Return summary
   return 'Migration complete. Check the execution log for details.';
 }
 
@@ -391,7 +485,7 @@ function testScript() {
     Logger.log('');
 
     // Test 3: Expected Sheets
-    Logger.log('Test 3: Expected sheets for auto-creation:');
+    Logger.log('Test 3: Expected sheets:');
     Logger.log('  - ' + CONTACT_SHEET_NAME);
     Logger.log('  - ' + NEWSLETTER_SHEET_NAME);
     Logger.log('  - ' + QUANTITY_REQUEST_SHEET_NAME);

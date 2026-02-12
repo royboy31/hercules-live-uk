@@ -145,6 +145,7 @@ interface SyncedProduct {
   // Badge fields from custom meta
   made_in_europe: boolean;
   green_product: boolean;
+  made_in_uk: boolean;
   // USP (Unique Selling Points) for card display
   card_features: string[];
   // Product sort order (from WordPress menu_order)
@@ -666,6 +667,7 @@ async function transformProduct(
   // Badge fields: "1" or 1 = true, "0" or 0 or undefined = false
   const madeInEurope = getMeta('made_in_europe');
   const greenProduct = getMeta('green_product');
+  const madeInUk = getMeta('made_in_uk');
 
   // USP (Unique Selling Points) for card display - up to 4 items
   const cardFeatures: string[] = [];
@@ -693,7 +695,7 @@ async function transformProduct(
     regular_price: product.regular_price,
     sale_price: product.sale_price,
     on_sale: product.on_sale,
-    currency: 'EUR',
+    currency: 'GBP',
     stock_status: product.stock_status,
     categories: product.categories,
     tags: product.tags,
@@ -707,6 +709,7 @@ async function transformProduct(
     // Badge fields from custom meta
     made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
     green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
+    made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
     // USP features for card display
     card_features: cardFeatures,
     // Product sort order (from WordPress menu_order)
@@ -848,6 +851,7 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
         const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
         const madeInEurope = getMeta('made_in_europe');
         const greenProduct = getMeta('green_product');
+        const madeInUk = getMeta('made_in_uk');
 
         return {
           id: p.id,
@@ -858,6 +862,7 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
           menu_order: p.menu_order || 0,
           made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
           green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
+          made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
         };
       });
       await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
@@ -1000,6 +1005,7 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
       menu_order: product.menu_order || 0,
       made_in_europe: syncedProduct.made_in_europe || false,
       green_product: syncedProduct.green_product || false,
+      made_in_uk: syncedProduct.made_in_uk || false,
     };
 
     if (existingIndex >= 0) {
@@ -2704,12 +2710,12 @@ export default {
           let priceDisplay = '';
           if (minPrice !== null && maxPrice !== null) {
             if (minPrice === maxPrice) {
-              priceDisplay = `€${minPrice.toFixed(2)}`;
+              priceDisplay = `£${minPrice.toFixed(2)}`;
             } else {
-              priceDisplay = `€${minPrice.toFixed(2)} – €${maxPrice.toFixed(2)}`;
+              priceDisplay = `£${minPrice.toFixed(2)} – £${maxPrice.toFixed(2)}`;
             }
           } else if (product.price) {
-            priceDisplay = `€${parseFloat(product.price).toFixed(2)}`;
+            priceDisplay = `£${parseFloat(product.price).toFixed(2)}`;
           }
 
           // Get thumbnail - use local cached image URL
@@ -2719,7 +2725,7 @@ export default {
             id: product.id,
             title: product.name,
             slug: product.slug,
-            url: `/produkte/${product.slug}`,
+            url: `/products/${product.slug}`,
             price: priceDisplay,
             minPrice,
             maxPrice,

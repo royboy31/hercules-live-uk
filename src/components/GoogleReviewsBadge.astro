@@ -27,7 +27,7 @@ const emptyStars = 5 - fullStars - (partialStar > 0 ? 1 : 0);
 // Format rating for display (e.g., 4.9 or 5.0)
 const ratingDisplay = rating % 1 === 0 ? rating.toFixed(1) : rating.toString();
 
-// Format review count for display (e.g., "135+ Reviews")
+// Format review count for display (e.g., "179+ Reviews")
 const reviewCountDisplay = `${reviewCount}+ Reviews`;
 
 // Calculate aspect ratio for responsive sizing
@@ -99,7 +99,7 @@ const height = Math.round(width / aspectRatio);
       ))}
     </g>
 
-    <!-- Review Count Text (e.g., "135+ Reviews") - Only shown if showReviewCount is true -->
+    <!-- Review Count Text (e.g., "179+ Reviews") - Only shown if showReviewCount is true -->
     {showReviewCount && (
       <text x="315" y="32" font-family="Jost, sans-serif" font-size="20" font-weight="500" fill="#FFFFFF">
         {reviewCountDisplay}

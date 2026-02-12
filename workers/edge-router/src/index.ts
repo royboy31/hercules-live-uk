@@ -24,7 +24,8 @@ const NO_CACHE_PATHS = [
 
 // Paths that should go to WordPress - UK English
 const WORDPRESS_PATHS = [
-  // Cart & Checkout
+  // Shop & Cart & Checkout
+  '/shop',
   '/cart',
   '/checkout',
   '/thank-you',
@@ -48,8 +49,7 @@ const WORDPRESS_PATHS = [
   // Product purchase (WordPress for add-to-cart functionality)
   '/buy',  // Astro links here for actual purchase - routes to WordPress /products/
 
-  // Contact & Quote pages
-  '/contact',
+  // Contact & Quote pages (contact-us is served by Astro)
   '/quote-generator',
 
   // About & Info pages
@@ -57,10 +57,8 @@ const WORDPRESS_PATHS = [
   '/delivery-and-returns',
   '/payment-methods',
 
-  // Legal pages
-  '/legal-notice',
+  // Legal pages (legal-notice, terms-of-service, privacy-policy served by Astro)
   '/terms-and-conditions',
-  '/privacy-policy',
 ];
 
 // Paths that should always go to Astro - UK English
@@ -129,6 +127,70 @@ export default {
     }
 
     // ============================================
+    // THIRD-PARTY SCRIPT PROXY - Cache with proper headers
+    // ============================================
+    if (pathname.startsWith('/cached-scripts/')) {
+      const SCRIPT_MAP: Record<string, { url: string; maxAge: number; contentType: string }> = {
+        '/cached-scripts/clarity.js': {
+          url: 'https://www.clarity.ms/tag/j9gd5ystsk',
+          maxAge: 604800, // 7 days
+          contentType: 'application/javascript',
+        },
+        '/cached-scripts/trustindex-loader.js': {
+          url: 'https://cdn.trustindex.io/loader.js?cb5ae3e497fe7730a8269155c1e',
+          maxAge: 86400, // 1 day
+          contentType: 'application/javascript',
+        },
+        '/cached-scripts/clickcease-stat.js': {
+          url: 'https://www.clickcease.com/monitor/stat.js',
+          maxAge: 86400, // 1 day
+          contentType: 'application/javascript',
+        },
+        '/cached-scripts/cf-beacon.js': {
+          url: 'https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015',
+          maxAge: 604800, // 7 days
+          contentType: 'application/javascript',
+        },
+      };
+
+      const scriptConfig = SCRIPT_MAP[pathname];
+      if (scriptConfig) {
+        // Check Cloudflare cache first
+        const cache = caches.default;
+        const cacheKey = new Request(url.toString(), request);
+        let cachedResponse = await cache.match(cacheKey);
+
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        // Fetch from origin
+        const originResponse = await fetch(scriptConfig.url, {
+          headers: { 'User-Agent': request.headers.get('User-Agent') || '' },
+        });
+
+        if (!originResponse.ok) {
+          return new Response('Script not available', { status: 502 });
+        }
+
+        const scriptBody = await originResponse.text();
+        const response = new Response(scriptBody, {
+          headers: {
+            'Content-Type': scriptConfig.contentType,
+            'Cache-Control': `public, max-age=${scriptConfig.maxAge}, stale-while-revalidate=${scriptConfig.maxAge * 2}`,
+            'Access-Control-Allow-Origin': '*',
+            'X-Proxied-From': scriptConfig.url,
+          },
+        });
+
+        // Store in Cloudflare edge cache
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+
+        return response;
+      }
+    }
+
+    // ============================================
     // 301 REDIRECTS - Old/alternate URLs to UK URL structure
     // ============================================
 
@@ -176,10 +238,8 @@ export default {
       return Response.redirect(new URL(`/products/${slug}`, url.origin).toString(), 301);
     }
 
-    // /shop -> /collections
-    if (pathname === '/shop' || pathname === '/shop/') {
-      return Response.redirect(new URL('/collections/', url.origin).toString(), 301);
-    }
+    // /shop -> route to WordPress (WooCommerce shop page, same as live site)
+    // Previously redirected to /collections/ but shop page needs to exist for WooCommerce
 
     // /category/* -> /collections/*
     if (pathname === '/category' || pathname === '/category/') {
@@ -188,6 +248,11 @@ export default {
     if (pathname.startsWith('/category/')) {
       const slug = pathname.replace('/category/', '');
       return Response.redirect(new URL(`/collections/${slug}`, url.origin).toString(), 301);
+    }
+
+    // /contact -> /contact-us
+    if (pathname === '/contact' || pathname === '/contact/') {
+      return Response.redirect(new URL('/contact-us/', url.origin).toString(), 301);
     }
 
     // German page redirects
@@ -424,7 +489,7 @@ export default {
           // Astro static assets (/_astro/*) have content hashes - preserve their 1-year cache
           // Only set short cache for HTML pages
           if (!pathname.startsWith('/_astro/')) {
-            newHeaders.set('Cache-Control', 'public, max-age=300'); // 5 minutes for HTML
+            newHeaders.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600'); // 5 min fresh + 1hr stale-while-revalidate
           }
           // Note: /_astro/* files keep their original Cache-Control from Cloudflare Pages
         }

@@ -3,7 +3,7 @@
  * Hardcoded for UK site to avoid fetching from German WordPress
  */
 
-const iconBaseUrl = 'https://hercules-merchandise.de/wp-content/uploads/hercules-menu-icons/';
+const iconBaseUrl = 'https://staging.hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/';
 
 export interface MenuItem {
   label: string;
@@ -43,7 +43,7 @@ const ukMenuData: MenuData = {
     { label: 'Flags', href: '/collections/flags/', icon_url: iconBaseUrl + 'flags-1.svg' },
     { label: 'Footwear', href: '/collections/footwear/', icon_url: iconBaseUrl + 'footwear-1.svg' },
     { label: 'Bags', href: '/collections/bags/', icon_url: iconBaseUrl + 'sportsbag-1.svg' },
-    { label: 'Textiles', href: '/collections/textiles/', icon_url: iconBaseUrl + 'textile-1.svg' },
+    { label: 'Textiles', href: '/collections/custom-textile/', icon_url: iconBaseUrl + 'textile-1.svg' },
     { label: 'Drinkware', href: '/collections/drinkware/', icon_url: iconBaseUrl + 'drinkware-1.svg' },
     { label: 'Balls', href: '/collections/balls/', icon_url: iconBaseUrl + 'balls-1.svg' },
     { label: 'Accessories', href: '/collections/accessories/', icon_url: iconBaseUrl + 'accessories-1.svg' },
@@ -59,7 +59,7 @@ const ukMenuData: MenuData = {
     { label: 'Christmas', href: '/collections/christmas/', icon_url: iconBaseUrl + 'christmas-1.svg' },
     { label: 'Small Prices', href: '/collections/small-prices/', icon_url: iconBaseUrl + 'smallprices.svg' },
     { label: 'Business', href: '/collections/business/', icon_url: iconBaseUrl + 'business.svg' },
-    { label: 'Giveaways', href: '/collections/giveaways/', icon_url: iconBaseUrl + 'giive-aways.svg' },
+    { label: 'Giveaways', href: '/collections/give-aways/', icon_url: iconBaseUrl + 'giive-aways.svg' },
     { label: 'Kids', href: '/collections/kids/', icon_url: iconBaseUrl + 'kids.svg' },
   ],
   directLinks: [

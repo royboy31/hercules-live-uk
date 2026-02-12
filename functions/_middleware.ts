@@ -30,10 +30,10 @@ export const onRequest: PagesFunction = async (context) => {
     return newResponse;
   }
 
-  // For HTML pages, set short cache to allow updates
+  // For HTML pages, 5 min fresh cache + 1 hour stale-while-revalidate
   if (pathname.endsWith('.html') || pathname === '/' || !pathname.includes('.')) {
     const newResponse = new Response(response.body, response);
-    newResponse.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    newResponse.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
     return newResponse;
   }
 

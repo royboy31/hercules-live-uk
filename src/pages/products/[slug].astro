@@ -39,7 +39,7 @@ try {
 // Helper to format price
 const formatPrice = (price: number | string) => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
-  return `€${num.toFixed(2).replace('.', ',')}`;
+  return `£${num.toFixed(2)}`;
 };
 
 // Get conditional prices for display (use first variation with prices)
@@ -202,7 +202,7 @@ if (product) {
     brand: siteConfig.siteName,
     priceMin: priceRange?.min,
     priceMax: priceRange?.max,
-    currency: 'EUR',
+    currency: 'GBP',
     availability: 'InStock',
     condition: 'NewCondition'
   }));
@@ -225,7 +225,7 @@ if (product) {
   ogType="product"
   ogImage={productImage}
   productPrice={priceRange?.min?.toString()}
-  productCurrency="EUR"
+  productCurrency="GBP"
   productAvailability="InStock"
   jsonLd={jsonLdSchemas}
   preloadLcpImage={galleryImages[0] ? {
@@ -276,6 +276,9 @@ if (product) {
                     )}
                     {product.made_in_europe && (
                       <img src="/images/badges/made-in-europe.svg" alt="Made in Europe" class="badge" />
+                    )}
+                    {product.made_in_uk && (
+                      <img src="/images/badges/made-in-uk.svg" alt="Made in UK" class="badge" />
                     )}
                   </div>
 

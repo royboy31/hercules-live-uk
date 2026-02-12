@@ -30,6 +30,7 @@ interface Props {
     // Badge fields from custom meta
     made_in_europe?: boolean;
     green_product?: boolean;
+    made_in_uk?: boolean;
     // USP features for card display
     card_features?: string[];
     // Number of images cached in KV (from Worker sync)
@@ -88,6 +89,7 @@ if (product.price) {
 // Badge display based on custom meta fields (NOT categories)
 const isMadeInEurope = product.made_in_europe === true;
 const isSustainable = product.green_product === true;
+const isMadeInUk = product.made_in_uk === true;
 
 // Card features (USP list)
 const cardFeatures = product.card_features || [];
@@ -109,7 +111,7 @@ const cardFeatures = product.card_features || [];
 
   <a href={`/products/${product.slug}`} class="woocommerce-LoopProduct-link">
     <!-- Badges - positioned top-left like WordPress -->
-    {(isMadeInEurope || isSustainable) && (
+    {(isMadeInEurope || isSustainable || isMadeInUk) && (
       <div class="kd-archive-badges-wrapper">
         {isSustainable && (
           <img
@@ -123,6 +125,13 @@ const cardFeatures = product.card_features || [];
             src="/images/badges/made-in-europe.svg"
             alt="Made in Europe Badge"
             class="kd-product-badge kd-badge-eu"
+          />
+        )}
+        {isMadeInUk && (
+          <img
+            src="/images/badges/made-in-uk.svg"
+            alt="Made in UK Badge"
+            class="kd-product-badge kd-badge-uk"
           />
         )}
       </div>
@@ -248,13 +257,18 @@ const cardFeatures = product.card_features || [];
   }
 
   .kd-badge-eco {
-    width: 60px;
+    width: 50px;
     height: auto;
   }
 
   .kd-badge-eu {
     width: 55px;
     height: 55px;
+  }
+
+  .kd-badge-uk {
+    width: 50px;
+    height: auto;
   }
 
   /* Product Gallery */
