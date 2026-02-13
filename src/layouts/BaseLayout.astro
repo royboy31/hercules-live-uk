@@ -227,6 +227,8 @@ if (jsonLd) {
   <!-- Preconnect to external resources for faster loading -->
   <link rel="preconnect" href="https://hercules-product-sync-uk.gilles-86d.workers.dev" crossorigin>
   <link rel="dns-prefetch" href="https://hercules-product-sync-uk.gilles-86d.workers.dev">
+  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
   <!-- Google Consent Mode V2 - Must load BEFORE GTM and GA4 -->
   <script is:inline>
@@ -240,101 +242,6 @@ if (jsonLd) {
       'ad_user_data': 'denied',
       'ad_personalization': 'denied',
       'wait_for_update': 500
-    });
-  </script>
-
-  <!-- Google Tag Manager -->
-  <script is:inline>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-TW5HR72');
-  </script>
-
-  <!-- Google Ads Conversion Tracking -->
-  <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=AW-11156667431"></script>
-  <script is:inline>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'AW-11156667431');
-  </script>
-
-  <!-- ClickCease Ad Fraud Protection (proxied for cache optimization) -->
-  <script is:inline async src="/cached-scripts/clickcease-stat.js"></script>
-
-  <!-- Microsoft Clarity (proxied for cache optimization) -->
-  <script is:inline>
-    (function(c,l,a,r,i,t,y){
-      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-      t=l.createElement(r);t.async=1;t.src="/cached-scripts/clarity.js";
-      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window,document,"clarity","script","j9gd5ystsk");
-  </script>
-
-  <!-- Google Analytics 4 (gtag.js) -->
-  <!-- TODO: Replace G-XXXXXXXXX with actual GA4 Measurement ID -->
-  <script is:inline>
-    // Initialize dataLayer and gtag function
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-
-    // GA4 Measurement ID - Replace with actual ID
-    window.GA4_MEASUREMENT_ID = 'G-XXXXXXXXX';
-
-    // Check if statistics consent is given
-    function hasStatisticsConsent() {
-      try {
-        const prefs = JSON.parse(localStorage.getItem('cmplz_preferences') || '{}');
-        return prefs.statistics === true;
-      } catch (e) {
-        return false;
-      }
-    }
-
-    // Initialize GA4 with consent mode
-    function initGA4() {
-      if (window.ga4Initialized) return;
-
-      // Load gtag.js script
-      var script = document.createElement('script');
-      script.async = true;
-      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA4_MEASUREMENT_ID;
-      document.head.appendChild(script);
-
-      gtag('js', new Date());
-      gtag('config', window.GA4_MEASUREMENT_ID, {
-        send_page_view: true,
-        cookie_flags: 'SameSite=None;Secure'
-      });
-
-      window.ga4Initialized = true;
-    }
-
-    // Initialize if consent already given
-    if (hasStatisticsConsent()) {
-      initGA4();
-    }
-
-    // Listen for consent updates and update Google Consent Mode
-    window.addEventListener('cmplz_consent_updated', function(e) {
-      if (e.detail) {
-        // Update consent mode based on user preferences
-        if (typeof gtag === 'function') {
-          gtag('consent', 'update', {
-            'analytics_storage': e.detail.statistics ? 'granted' : 'denied',
-            'ad_storage': e.detail.marketing ? 'granted' : 'denied',
-            'ad_user_data': e.detail.marketing ? 'granted' : 'denied',
-            'ad_personalization': e.detail.marketing ? 'granted' : 'denied'
-          });
-        }
-
-        // Initialize GA4 if statistics consent given
-        if (e.detail.statistics) {
-          initGA4();
-        }
-      }
     });
   </script>
 
@@ -380,6 +287,52 @@ if (jsonLd) {
           hq.src = logo.dataset.hqSrc;
         }
       }, 8000);
+    })();
+  </script>
+
+  <!-- Deferred Analytics & Tracking Scripts — loaded after page render for PageSpeed 90+ -->
+  <script is:inline>
+    (function(){
+      var loaded = false;
+      function loadTracking(){
+        if(loaded) return;
+        loaded = true;
+
+        // 1. Google Tag Manager
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-TW5HR72');
+
+        // 2. Google Ads Conversion Tracking
+        var gads=document.createElement('script');
+        gads.async=true;
+        gads.src='https://www.googletagmanager.com/gtag/js?id=AW-11156667431';
+        document.head.appendChild(gads);
+        gads.onload=function(){
+          gtag('js', new Date());
+          gtag('config', 'AW-11156667431');
+        };
+
+        // 3. ClickCease (proxied)
+        var cc=document.createElement('script');
+        cc.async=true;cc.src='/cached-scripts/clickcease-stat.js';
+        document.head.appendChild(cc);
+
+        // 4. Microsoft Clarity (proxied)
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="/cached-scripts/clarity.js";
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window,document,"clarity","script","j9gd5ystsk");
+      }
+
+      // Fire after 2s or on first user interaction — whichever comes first
+      var timer = setTimeout(loadTracking, 2000);
+      ['scroll','click','keydown','touchstart'].forEach(function(e){
+        window.addEventListener(e, function(){clearTimeout(timer);loadTracking();}, {once:true,passive:true});
+      });
     })();
   </script>
 
