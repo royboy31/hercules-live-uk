@@ -227,7 +227,6 @@ if (jsonLd) {
   <!-- Preconnect to external resources for faster loading -->
   <link rel="preconnect" href="https://hercules-product-sync-uk.gilles-86d.workers.dev" crossorigin>
   <link rel="dns-prefetch" href="https://hercules-product-sync-uk.gilles-86d.workers.dev">
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
 
   <!-- Google Consent Mode V2 - Must load BEFORE GTM and GA4 -->
@@ -290,49 +289,80 @@ if (jsonLd) {
     })();
   </script>
 
-  <!-- Deferred Analytics & Tracking Scripts — loaded after page render for PageSpeed 90+ -->
+  <!-- Deferred Analytics & Tracking Scripts — staggered loading after LCP for PageSpeed 90+ -->
   <script is:inline>
     (function(){
-      var loaded = false;
-      function loadTracking(){
-        if(loaded) return;
-        loaded = true;
+      var phase1=false, phase2=false;
 
-        // 1. Google Tag Manager
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-TW5HR72');
-
-        // 2. Google Ads Conversion Tracking
-        var gads=document.createElement('script');
-        gads.async=true;
-        gads.src='https://www.googletagmanager.com/gtag/js?id=AW-11156667431';
-        document.head.appendChild(gads);
-        gads.onload=function(){
-          gtag('js', new Date());
-          gtag('config', 'AW-11156667431');
-        };
-
-        // 3. ClickCease (proxied)
-        var cc=document.createElement('script');
-        cc.async=true;cc.src='/cached-scripts/clickcease-stat.js';
-        document.head.appendChild(cc);
-
-        // 4. Microsoft Clarity (proxied)
-        (function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-          t=l.createElement(r);t.async=1;t.src="/cached-scripts/clarity.js";
-          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window,document,"clarity","script","j9gd5ystsk");
+      function inIdle(fn){
+        if('requestIdleCallback' in window) requestIdleCallback(fn,{timeout:3000});
+        else setTimeout(fn,100);
       }
 
-      // Fire after 2s or on first user interaction — whichever comes first
-      var timer = setTimeout(loadTracking, 2000);
-      ['scroll','click','keydown','touchstart'].forEach(function(e){
-        window.addEventListener(e, function(){clearTimeout(timer);loadTracking();}, {once:true,passive:true});
+      // Phase 1: GTM + Google Ads (core tracking) — 5s or user interaction
+      function loadPhase1(){
+        if(phase1) return;
+        phase1=true;
+
+        // 1. Google Tag Manager
+        inIdle(function(){
+          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer','GTM-TW5HR72');
+        });
+
+        // 2. Google Ads Conversion Tracking — staggered 1.5s after GTM
+        setTimeout(function(){
+          inIdle(function(){
+            var gads=document.createElement('script');
+            gads.async=true;
+            gads.src='https://www.googletagmanager.com/gtag/js?id=AW-11156667431';
+            document.head.appendChild(gads);
+            gads.onload=function(){
+              gtag('js', new Date());
+              gtag('config', 'AW-11156667431');
+            };
+          });
+        }, 1500);
+
+        // Trigger Phase 2 after Phase 1 settles
+        setTimeout(loadPhase2, 3000);
+      }
+
+      // Phase 2: ClickCease + Clarity (secondary tracking) — 8s or after Phase 1
+      function loadPhase2(){
+        if(phase2) return;
+        phase2=true;
+
+        // 3. ClickCease (proxied)
+        inIdle(function(){
+          var cc=document.createElement('script');
+          cc.async=true;cc.src='/cached-scripts/clickcease-stat.js';
+          document.head.appendChild(cc);
+        });
+
+        // 4. Microsoft Clarity (proxied) — staggered 1.5s after ClickCease
+        setTimeout(function(){
+          inIdle(function(){
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="/cached-scripts/clarity.js";
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window,document,"clarity","script","j9gd5ystsk");
+          });
+        }, 1500);
+      }
+
+      // Phase 1: Fire after 5s or on first meaningful user interaction
+      var t1=setTimeout(loadPhase1, 5000);
+      ['click','keydown'].forEach(function(e){
+        window.addEventListener(e, function(){clearTimeout(t1);loadPhase1();}, {once:true,passive:true});
       });
+
+      // Phase 2: Fallback timer at 8s (in case Phase 1 was triggered by interaction)
+      setTimeout(loadPhase2, 8000);
     })();
   </script>
 
