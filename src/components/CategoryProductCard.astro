@@ -59,6 +59,12 @@ const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
 // - Main images: 361x361 WebP (~10-15KB) - exact match for 361px display
 // - Thumbnails: 100x100 WebP (~2-5KB) - displayed at 83px (slight buffer for retina)
 const imageCount = product.cached_image_count || Math.min(product.images?.length || 0, 10);
+// Helper: Convert WordPress original URL to 600x600 WebP URL
+// e.g., image.png → image-600x600.png.webp
+function toWebp600(src: string): string {
+  return src.replace(/(\.[^.]+)$/, '-600x600$1.webp');
+}
+
 const galleryImages = (product.images || []).slice(0, imageCount).map((img, index) => {
   // Worker URL format: /image/{slug} for index 0, /image/{slug}/{index} for gallery
   const baseUrl = index === 0
@@ -66,16 +72,16 @@ const galleryImages = (product.images || []).slice(0, imageCount).map((img, inde
     : `${WORKER_URL}/image/${product.slug}/${index}`;
   return {
     thumb: `${baseUrl}?size=thumb`,  // 100x100 cached thumbnail (~2-5KB)
-    main: baseUrl,                    // 361x361 cached main image (~10-15KB)
-    original: img.src,                // Original WordPress URL (full resolution ~1000x1000)
+    main: baseUrl,                    // 361x361 cached main image (~10-15KB WebP)
+    hires: toWebp600(img.src),        // 600x600 WebP for retina progressive upgrade (~50KB)
     alt: img.alt || product.name
   };
 });
 
-// Worker main image URL - 361x361 cached image (fast initial load)
+// Worker main image URL - 361x361 cached WebP image
 const workerImageUrl = `${WORKER_URL}/image/${product.slug}`;
-// Original WordPress URL - full resolution for high-quality upgrade
-const originalImageUrl = product.images?.[0]?.src || workerImageUrl;
+// 600x600 WebP for progressive upgrade on retina displays (~50KB vs ~200KB full PNG)
+const hiresImageUrl = product.images?.[0]?.src ? toWebp600(product.images[0].src) : workerImageUrl;
 
 // Format price - just show the base price like WooCommerce does
 let priceDisplay = '';
@@ -139,11 +145,11 @@ const cardFeatures = product.card_features || [];
 
     <!-- Product Gallery -->
     <div class="kd-product-gallery" data-product-slug={product.slug}>
-      <!-- Main Image - Progressive Loading: Worker cached (361x361) first, then original WordPress (1000x1000) -->
+      <!-- Main Image - Worker cached 361x361 WebP, upgrades to 600x600 WebP on viewport entry -->
       <div class="kd-main-image">
         <img
           src={workerImageUrl}
-          data-full-src={originalImageUrl}
+          data-full-src={hiresImageUrl}
           data-upgraded="false"
           alt={product.name}
           loading={isAboveFold ? "eager" : "lazy"}
@@ -167,7 +173,7 @@ const cardFeatures = product.card_features || [];
                     class={`kd-thumb-btn${idx === 0 ? ' active' : ''}`}
                     data-thumb-src={img.thumb}
                     data-main-src={img.main}
-                    data-original-src={img.original}
+                    data-original-src={img.hires}
                     aria-label={`Thumbnail ${idx + 1}`}
                   >
                     <img
@@ -292,7 +298,7 @@ const cardFeatures = product.card_features || [];
     aspect-ratio: 1/1;
   }
 
-  /* Progressive Image Loading - smooth transition when upgrading to high-res */
+  /* Progressive Image Loading - smooth transition when upgrading to high-res WebP */
   .kd-progressive-img {
     transition: opacity 0.2s ease-out;
   }
