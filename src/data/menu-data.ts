@@ -3,7 +3,7 @@
  * Hardcoded for UK site to avoid fetching from German WordPress
  */
 
-const iconBaseUrl = 'https://staging.hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/';
+const iconBaseUrl = 'https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/';
 
 export interface MenuItem {
   label: string;

@@ -19,7 +19,7 @@ interface ProductSearchProps {
 
 export default function ProductSearch({
   placeholder = 'Search products...',
-  apiUrl = 'https://hercules-product-sync-uk.gilles-86d.workers.dev'
+  apiUrl = 'https://hercules-product-sync-uk-production.gilles-86d.workers.dev'
 }: ProductSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -61,7 +61,7 @@ export default function ProductSearch({
           ...product,
           thumbnail: product.thumbnail?.replace(
             'hercules-product-sync-uk.workers.dev',
-            'hercules-product-sync-uk.gilles-86d.workers.dev'
+            'hercules-product-sync-uk-production.gilles-86d.workers.dev'
           ) || ''
         }));
         setResults(fixedResults);

@@ -9,7 +9,7 @@ set -e
 PROJECT_DIR="/home/kamindu/hercules-headless-uk"
 IMAGES_DIR="$PROJECT_DIR/public/images/products"
 DATA_FILE="$PROJECT_DIR/src/data/homepage-products.json"
-STAGING_URL="https://staging.hercules-merchandise.co.uk"
+STAGING_URL="https://hercules-merchandise.co.uk"
 LOG_FILE="$PROJECT_DIR/scripts/sync.log"
 
 # Create directories if they don't exist

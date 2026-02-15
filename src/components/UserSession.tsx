@@ -27,7 +27,7 @@ const getBaseUrl = () => {
     return '';
   }
 
-  return 'https://staging.hercules-merchandise.co.uk';
+  return 'https://hercules-merchandise.co.uk';
 };
 
 export default function UserSession({ type }: UserSessionProps) {

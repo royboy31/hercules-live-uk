@@ -139,6 +139,11 @@ interface EmailRecipient {
   name?: string;
 }
 
+interface BrevoAttachment {
+  name: string;
+  content: string; // base64 encoded
+}
+
 interface SendEmailParams {
   to: EmailRecipient[];
   cc?: EmailRecipient[];
@@ -146,6 +151,7 @@ interface SendEmailParams {
   subject: string;
   htmlContent: string;
   textContent?: string;
+  attachment?: BrevoAttachment[];
 }
 
 async function sendEmail(
@@ -171,6 +177,7 @@ async function sendEmail(
         subject: params.subject,
         htmlContent: params.htmlContent,
         textContent: params.textContent,
+        ...(params.attachment && params.attachment.length > 0 ? { attachment: params.attachment } : {}),
       }),
     });
 
@@ -312,8 +319,8 @@ async function uploadFilesToR2(
 // EMAIL TEMPLATES (Matching WordPress Pearl Plugin Style)
 // ============================================================================
 
-const SITE_URL = 'https://staging.hercules-merchandise.co.uk';
-const LOGO_URL = 'https://staging.hercules-merchandise.co.uk/wp-content/plugins/pearl-wc-steps-variation/includes/mail_templates/img/logo.png';
+const SITE_URL = 'https://hercules-merchandise.co.uk';
+const LOGO_URL = 'https://hercules-merchandise.co.uk/wp-content/plugins/pearl-wc-steps-variation/includes/mail_templates/img/logo.png';
 
 function escapeHtml(text: string): string {
   if (!text) return '';
@@ -847,6 +854,22 @@ async function handleContactForm(request: Request, env: Env): Promise<Response> 
           });
         }
 
+        // Build Brevo file attachments from uploaded files (base64 data)
+        const brevoAttachments: BrevoAttachment[] = [];
+        if (body.uploadFiles && body.uploadFiles.length > 0) {
+          for (const file of body.uploadFiles) {
+            if (file.name && file.data) {
+              brevoAttachments.push({
+                name: file.name,
+                content: file.data,
+              });
+            }
+          }
+          if (brevoAttachments.length > 0) {
+            console.log(`[Brevo] Attaching ${brevoAttachments.length} file(s) to email`);
+          }
+        }
+
         // Send email based on form type (matching WordPress flow)
         // - Contact Form: TO admin, CC customer
         // - Express Delivery: TO admin only, Reply-To customer
@@ -860,6 +883,7 @@ async function handleContactForm(request: Request, env: Env): Promise<Response> 
             replyTo: { email: contactData.email, name: contactData.name },
             subject: `Urgent Quote Request - ${contactData.productName || 'Express'}`,
             htmlContent,
+            attachment: brevoAttachments.length > 0 ? brevoAttachments : undefined,
           };
         } else if (formType === 'quantity' || formType === 'quantity_request' || contactData.productName) {
           // Quantity request: TO admin, Reply-To customer (no CC)
@@ -868,6 +892,7 @@ async function handleContactForm(request: Request, env: Env): Promise<Response> 
             replyTo: { email: contactData.email, name: contactData.name },
             subject,
             htmlContent,
+            attachment: brevoAttachments.length > 0 ? brevoAttachments : undefined,
           };
         } else {
           // General contact form: TO admin, CC customer
@@ -876,6 +901,7 @@ async function handleContactForm(request: Request, env: Env): Promise<Response> 
             cc: [{ email: contactData.email, name: contactData.name }],
             subject,
             htmlContent,
+            attachment: brevoAttachments.length > 0 ? brevoAttachments : undefined,
           };
         }
 

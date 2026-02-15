@@ -65,7 +65,7 @@ class SessionManager {
       return '/wp-json/hercules/v1/session';
     }
 
-    return 'https://staging.hercules-merchandise.co.uk/wp-json/hercules/v1/session';
+    return 'https://hercules-merchandise.co.uk/wp-json/hercules/v1/session';
   }
 
   private notifyListeners() {

@@ -9,3 +9,12 @@ routes = [
 [vars]
 ASTRO_ORIGIN = "https://hercules-uk-staging-e9z.pages.dev"
 WORDPRESS_ORIGIN = "https://staging.hercules-merchandise.co.uk"
+
+[env.production]
+routes = [
+  { pattern = "hercules-merchandise.co.uk/*", zone_name = "hercules-merchandise.co.uk" }
+]
+
+[env.production.vars]
+ASTRO_ORIGIN = "https://hercules-uk.pages.dev"
+WORDPRESS_ORIGIN = "https://hercules-merchandise.co.uk"

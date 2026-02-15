@@ -2,15 +2,10 @@ name = "hercules-product-sync-uk"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 
-# KV namespace for product data (UK)
+# KV namespace for product data (UK staging)
 [[kv_namespaces]]
 binding = "PRODUCTS_KV"
 id = "50743a0e269f4450b61bb690847534c4"
-
-# R2 bucket for product images (optional - enable in Cloudflare dashboard first)
-# [[r2_buckets]]
-# binding = "PRODUCTS_BUCKET"
-# bucket_name = "hercules-uk-products"
 
 # Scheduled triggers (cron jobs)
 [triggers]
@@ -25,6 +20,16 @@ ASTRO_SITE_URL = "https://hercules-uk-staging-e9z.pages.dev"
 [env.dev]
 vars = { WC_STORE_URL = "https://staging.hercules-merchandise.co.uk" }
 
-# Production environment (when ready for live)
+# Production environment
 [env.production]
-vars = { WC_STORE_URL = "https://hercules-merchandise.co.uk" }
+
+[[env.production.kv_namespaces]]
+binding = "PRODUCTS_KV"
+id = "82f827d101734ce38ccc89629c7ae919"
+
+[env.production.triggers]
+crons = ["0 3 * * *"]
+
+[env.production.vars]
+WC_STORE_URL = "https://hercules-merchandise.co.uk"
+ASTRO_SITE_URL = "https://hercules-uk.pages.dev"

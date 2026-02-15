@@ -3,7 +3,7 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches:
-      - main
+      - production
   workflow_dispatch:
     inputs:
       reason:
@@ -14,6 +14,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
       deployments: write
@@ -42,7 +43,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/ --project-name=hercules-uk-staging
+          command: pages deploy dist/ --project-name=hercules-uk
 
       - name: Output deployment URL
-        run: echo "Deployed to https://hercules-uk-staging-e9z.pages.dev"
+        run: echo "Deployed to https://hercules-uk.pages.dev"

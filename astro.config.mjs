@@ -9,7 +9,7 @@ import sitemap from '@astrojs/sitemap';
 // Hercules UK Configuration
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://staging.hercules-merchandise.co.uk',
+  site: 'https://hercules-merchandise.co.uk',
 
   vite: {
     plugins: [tailwindcss()],
@@ -64,7 +64,7 @@ export default defineConfig({
       // Custom serialization for sitemap entries
       serialize: (item) => {
         // Higher priority for homepage
-        if (item.url === 'https://staging.hercules-merchandise.co.uk/') {
+        if (item.url === 'https://hercules-merchandise.co.uk/') {
           return { ...item, changefreq: 'daily', priority: 1.0 };
         }
         // Higher priority for product pages
@@ -76,7 +76,7 @@ export default defineConfig({
           return { ...item, changefreq: 'weekly', priority: 0.8 };
         }
         // Higher priority for blog posts
-        if (item.url.includes('/blogs/') && item.url !== 'https://staging.hercules-merchandise.co.uk/blogs/') {
+        if (item.url.includes('/blogs/') && item.url !== 'https://hercules-merchandise.co.uk/blogs/') {
           return { ...item, changefreq: 'monthly', priority: 0.6 };
         }
         return item;

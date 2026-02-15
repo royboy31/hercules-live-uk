@@ -24,7 +24,7 @@ const GITHUB_REPO = 'royboy31/hercules-live-uk';
 const GITHUB_WORKFLOW = 'deploy.yml';
 
 // Worker base URL for image serving (UK)
-const WORKER_URL = 'https://hercules-product-sync-uk.workers.dev';
+const WORKER_URL = 'https://hercules-product-sync-uk-production.gilles-86d.workers.dev';
 
 interface WCProduct {
   id: number;
@@ -1452,7 +1452,7 @@ async function triggerSiteRebuild(env: Env): Promise<{ triggered: boolean; reaso
         'User-Agent': 'Hercules-Product-Sync-Worker',
       },
       body: JSON.stringify({
-        ref: 'main',
+        ref: 'production',
         inputs: {
           reason: 'WooCommerce product sync webhook',
         },
@@ -1821,7 +1821,7 @@ export default {
         return new Response('Unauthorized', { status: 401 });
       }
 
-      const testUrl = url.searchParams.get('url') || 'https://staging.hercules-merchandise.co.uk/wp-content/uploads/2025/08/Hercules-Merchandise-Jacquard-Woven-Towel-1-300x300.webp';
+      const testUrl = url.searchParams.get('url') || 'https://hercules-merchandise.co.uk/wp-content/uploads/2025/08/Hercules-Merchandise-Jacquard-Woven-Towel-1-300x300.webp';
       const testSync = url.searchParams.get('sync') === 'true';
 
       try {
