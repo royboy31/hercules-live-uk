@@ -59,13 +59,13 @@ class SessionManager {
 
     if (
       hostname.includes('hercules-edge-router') ||
-      hostname.includes('hercules-merchandise.de') ||
+      hostname.includes('hercules-merchandise.co.uk') ||
       hostname === 'localhost'
     ) {
       return '/wp-json/hercules/v1/session';
     }
 
-    return 'https://staging.hercules-merchandise.de/wp-json/hercules/v1/session';
+    return 'https://staging.hercules-merchandise.co.uk/wp-json/hercules/v1/session';
   }
 
   private notifyListeners() {

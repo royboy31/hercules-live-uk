@@ -50,7 +50,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           return new Response(
             JSON.stringify({
               success: false,
-              error: `Datei "${value.name}" ist zu groß. Maximale Größe: 10MB`,
+              error: `File "${value.name}" is too large. Maximum size: 10MB`,
             }),
             {
               status: 400,
@@ -64,7 +64,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           return new Response(
             JSON.stringify({
               success: false,
-              error: 'Gesamtgröße der Dateien überschreitet 25MB',
+              error: 'Total file size exceeds 25MB',
             }),
             {
               status: 400,
