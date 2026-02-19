@@ -1,6 +1,65 @@
 # Hercules Headless — Sync Configuration Reference
 
-This document describes the complete sync architecture between WordPress/WooCommerce and the Astro frontend. Use this as the blueprint when setting up sync for any other Hercules regional site.
+This document describes the complete sync architecture between WordPress/WooCommerce and the Astro frontend. Use it as the blueprint when setting up or auditing sync on any Hercules regional site.
+
+---
+
+## Regional Sites Status
+
+| Site | Region | Astro Repo | Status | Missing |
+|------|--------|------------|--------|---------|
+| `hercules-merchandise.co.uk` | 🇬🇧 UK | `royboy31/hercules-live-uk` | ✅ Fully configured | — |
+| `hercules-merchandise.de` | 🇩🇪 DE | `royboy31/hercules-live-de` | ⚠️ Partial | Product webhooks, category webhooks, dynamic homepage |
+| `hercules-merchandising.fr` | 🇫🇷 FR | *(WordPress only)* | ❌ Not applicable | Full headless build needed first |
+| `hercules-merchandise.nl` | 🇳🇱 NL | *(planned)* | 🔲 Planned | — |
+
+---
+
+## Site-Specific Configuration Values
+
+### 🇬🇧 UK (`hercules-merchandise.co.uk`) — reference / fully live
+
+| Item | Staging | Production |
+|------|---------|------------|
+| Worker name | `hercules-product-sync-uk` | `hercules-product-sync-uk` `--env production` |
+| Worker URL | `https://hercules-product-sync-uk.gilles-86d.workers.dev` | `https://hercules-product-sync-uk-production.gilles-86d.workers.dev` |
+| KV Namespace ID | `50743a0e269f4450b61bb690847534c4` | `82f827d101734ce38ccc89629c7ae919` |
+| Astro Pages project | `hercules-uk-staging-e9z` | `hercules-uk` |
+| Astro Pages URL | `https://hercules-uk-staging-e9z.pages.dev` | `https://hercules-uk.pages.dev` |
+| WC store URL | `https://staging.hercules-merchandise.co.uk` | `https://hercules-merchandise.co.uk` |
+| WordPress server | `ssh combel-uk` | same server |
+| mu-plugins path (prod) | — | `/var/www/vhosts/hercules-merchandise.co.uk/httpdocs/wp-content/mu-plugins/` |
+| mu-plugins path (staging) | `/var/www/vhosts/hercules-merchandise.co.uk/staging.hercules-merchandise.co.uk/wp-content/mu-plugins/` | — |
+| Webhook secret | `hercules-webhook-secret-uk-2024` | same |
+| GitHub repo | `royboy31/hercules-live-uk` | same |
+| Astro project folder | `/home/kamindu/hercules-headless-uk/` | — |
+
+### 🇩🇪 DE (`hercules-merchandise.de`) — partial, needs product/category webhooks
+
+| Item | Staging | Production |
+|------|---------|------------|
+| Worker name | `hercules-product-sync-live` | `hercules-product-sync-live` `--env production` |
+| Worker URL | `https://hercules-product-sync.gilles-86d.workers.dev` | *(same worker, production env)* |
+| KV Namespace ID | `9eb4cfdf0e0d4636ad728eeb0ee30557` | *(same — DE uses one KV namespace)* |
+| Astro Pages project | — | `hercules-de-live` |
+| Astro Pages URL | — | `https://hercules-de-live.pages.dev` |
+| WC store URL | `https://staging.hercules-merchandise.de` | `https://hercules-merchandise.de` |
+| WordPress server | `ssh combel` | same server |
+| mu-plugins path (prod) | — | `/var/www/vhosts/hercules-merchandise.de/httpdocs/wp-content/mu-plugins/` |
+| mu-plugins path (staging) | `/var/www/vhosts/hercules-merchandise.de/staging.hercules-merchandise.de/wp-content/mu-plugins/` | — |
+| Webhook secret | `hercules-webhook-secret-2024` | same |
+| GitHub repo | `royboy31/hercules-live-de` | same |
+| Astro project folder | `/home/kamindu/hercules-headless-live/` | — |
+
+**DE — what's missing:**
+
+| Item | Status | Action |
+|------|--------|--------|
+| `hercules-product-webhooks.php` | ❌ Not installed | Copy from UK `wordpress-updates/`, update secret + URLs, deploy to DE server |
+| `hercules-category-webhooks.php` | ❌ Not installed | Same as above |
+| `src/pages/index.astro` homepage | ❌ Uses static JSON | Apply same dynamic fetch fix as UK |
+| `hercules-post-webhooks.php` | ✅ Installed | — |
+| `hercules-menu-webhooks.php` | ✅ Installed | — |
 
 ---
 
@@ -137,21 +196,25 @@ In `.github/workflows/deploy.yml`, pass the production worker URL as a build env
     WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
 ```
 
-In Astro files use:
+In every Astro page/component that fetches from the worker:
 ```typescript
 const WORKER_URL = import.meta.env.WORKER_URL
-  || 'https://[worker-name].[account].workers.dev';  // staging fallback
+  || 'https://[worker-name].[account].workers.dev';  // staging fallback for local dev
 ```
 
 ---
 
 ## WordPress mu-plugins
 
-Install all four plugins on **both staging and production** servers. Copy to `wp-content/mu-plugins/`.
+Install all four plugins on **both staging and production** servers. Copy to `wp-content/mu-plugins/`. Always create a `.bak-YYYYMMDD` backup before overwriting an existing file.
+
+When adapting for a new region, update two values inside each plugin:
+- `$webhook_secret` — match the `WEBHOOK_SECRET` set on the worker
+- `get_webhook_url()` — return the correct staging / production worker URLs for that region
 
 ### 1. `hercules-product-webhooks.php`
 
-**What it covers:** All product data changes.
+**What it covers:** All product data changes, including ACF fields.
 
 | WordPress Hook | Fires When | Worker Endpoint |
 |---------------|-----------|----------------|
@@ -188,7 +251,7 @@ Install all four plugins on **both staging and production** servers. Copy to `wp
 
 ### 4. `hercules-menu-webhooks.php`
 
-**What it covers:** Navigation menu changes. Menu data is built into the Astro static bundle, so a full site rebuild is needed.
+**What it covers:** Navigation menu changes. Menu data is built into the Astro static bundle, so a full site rebuild is needed on any menu change.
 
 | WordPress Hook | Fires When | Worker Endpoint |
 |---------------|-----------|----------------|
@@ -198,7 +261,7 @@ Install all four plugins on **both staging and production** servers. Copy to `wp
 
 ## Webhook Payload Format
 
-All webhooks use the same signature method:
+All webhooks use the same HMAC-SHA256 signature method:
 ```php
 $signature = base64_encode(hash_hmac('sha256', $payload, $webhook_secret, true));
 // Sent as: X-WC-Webhook-Signature header
@@ -206,16 +269,9 @@ $signature = base64_encode(hash_hmac('sha256', $payload, $webhook_secret, true))
 
 ### Product payloads
 ```json
-// create / update
 { "id": 12345, "name": "Product Name", "action": "update", "status": "publish" }
-
-// delete / trash
 { "id": 12345, "action": "delete" }
-
-// variation update (sends parent product ID)
 { "id": 12345, "variation_id": 67890, "action": "variation_update" }
-
-// ACF save
 { "id": 12345, "name": "Product Name", "action": "acf_save", "status": "publish" }
 ```
 
@@ -336,69 +392,75 @@ curl "$WORKER/status"
 
 ---
 
-## Initial Setup Sequence
+## Porting to a New Site — Checklist
 
-When setting up a new regional site from scratch:
+Use this checklist when applying the sync architecture to a new regional site. The UK site is the reference implementation.
+
+### Phase 1 — Worker
+
+- [ ] Copy `workers/product-sync/` from the UK project
+- [ ] Update `wrangler.toml`: worker name, KV namespace IDs, `WC_STORE_URL`, `ASTRO_SITE_URL`
+- [ ] Update `src/index.ts`: `WORKER_URL` constant (used for image URLs) and `GITHUB_REPO`
+- [ ] Deploy worker (staging): `wrangler deploy`
+- [ ] Set all 4 secrets (staging): `WC_CONSUMER_KEY`, `WC_CONSUMER_SECRET`, `WEBHOOK_SECRET`, `GITHUB_TOKEN`
+- [ ] Deploy worker (production): `wrangler deploy --env production`
+- [ ] Set all 4 secrets (production) with `--env production`
+- [ ] Verify: `curl "[worker-url]/status"`
+
+### Phase 2 — Initial data sync
 
 ```bash
-# 1. Deploy worker (staging first)
-cd workers/product-sync
-wrangler deploy
-
-# 2. Set all secrets (staging)
-wrangler secret put WC_CONSUMER_KEY
-wrangler secret put WC_CONSUMER_SECRET
-wrangler secret put WEBHOOK_SECRET
-wrangler secret put GITHUB_TOKEN
-
-# 3. Run initial full sync (staging)
-WORKER="https://[worker-name].[account].workers.dev"
+WORKER="https://[worker-url]"
 SECRET="[webhook-secret]"
 
 curl -X POST "$WORKER/sync"            -H "Authorization: Bearer $SECRET"
 curl -X POST "$WORKER/sync-categories" -H "Authorization: Bearer $SECRET"
 curl -X POST "$WORKER/sync-posts"      -H "Authorization: Bearer $SECRET"
 
-# 4. Verify data
-curl "$WORKER/status"
+# Verify counts
 curl "$WORKER/products" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d), 'products')"
+```
 
-# 5. Deploy worker to production
-wrangler deploy --env production
+### Phase 3 — WordPress mu-plugins
 
-# 6. Set all secrets (production)
-wrangler secret put WC_CONSUMER_KEY     --env production
-wrangler secret put WC_CONSUMER_SECRET  --env production
-wrangler secret put WEBHOOK_SECRET      --env production
-wrangler secret put GITHUB_TOKEN        --env production
+For each plugin, update `$webhook_secret` and `get_webhook_url()` to use the region's worker URLs, then deploy to both staging and production:
 
-# 7. Run full sync (production)
-WORKER_PROD="https://[worker-name]-production.[account].workers.dev"
-curl -X POST "$WORKER_PROD/sync"            -H "Authorization: Bearer $SECRET"
-curl -X POST "$WORKER_PROD/sync-categories" -H "Authorization: Bearer $SECRET"
-curl -X POST "$WORKER_PROD/sync-posts"      -H "Authorization: Bearer $SECRET"
-
-# 8. Install mu-plugins on WordPress server (both staging and production)
+```bash
+# For each plugin file:
 scp wordpress-updates/hercules-product-webhooks.php  [server]:[mu-plugins-path]/
 scp wordpress-updates/hercules-category-webhooks.php [server]:[mu-plugins-path]/
 scp wordpress-updates/hercules-post-webhooks.php     [server]:[mu-plugins-path]/
 scp wordpress-updates/hercules-menu-webhooks.php     [server]:[mu-plugins-path]/
 
-# Verify PHP syntax
-ssh [server] "/opt/plesk/php/8.3/bin/php -l [mu-plugins-path]/hercules-product-webhooks.php"
-
-# 9. Push to production branch → triggers Astro build from production KV
-git push origin production
+# Verify PHP syntax (adjust PHP path per server)
+ssh [server] "php -l [mu-plugins-path]/hercules-product-webhooks.php"
 ```
+
+### Phase 4 — Astro build
+
+- [ ] In `.github/workflows/deploy.yml` set `WORKER_URL` env var to the production worker URL
+- [ ] In every Astro page that fetches from the worker, use:
+  ```typescript
+  const WORKER_URL = import.meta.env.WORKER_URL || 'https://[staging-worker-url]';
+  ```
+- [ ] Update `src/pages/index.astro`: replace static `homepage-products.json` import with dynamic build-time fetch (see UK implementation — `homepageProductSlugs` array + `Promise.all` fetches)
+- [ ] Trigger a build and verify all pages load
+
+### Phase 5 — Verify end-to-end
+
+- [ ] Update a product in WordPress → confirm KV `synced_at` updates → confirm rebuild triggers → confirm site reflects change
+- [ ] Update a category → confirm rebuild triggers
+- [ ] Save a post → confirm rebuild triggers
+- [ ] Update a menu → confirm rebuild triggers
 
 ---
 
-## Emergency: KV Wiped / product:index Empty
+## Emergency: KV Wiped / `product:index` Empty
 
-If products disappear from the site but the individual `product:{id}` KV entries still exist (common after a failed/buggy sync), you can rebuild `product:index` without a full sync:
+If products disappear from the site but individual `product:{id}` KV entries still exist (common after a failed or buggy sync), rebuild `product:index` without a full sync:
 
 ```python
-# rebuild-index.py — reads all product:{id} keys, writes product:index (98 reads + 1 write)
+# rebuild-index.py — 98 reads + 1 write, well within daily KV limits
 import urllib.request, json, time
 
 CF_ACCOUNT = "[account-id]"
@@ -453,17 +515,20 @@ gh workflow run deploy.yml --repo [org]/[repo] --ref production
 ## Known Gotchas
 
 ### 1. Cron re-enabled by `wrangler deploy`
-Every `wrangler deploy` re-registers trigger configuration from `wrangler.toml`. If cron entries exist in `wrangler.toml`, they will be re-enabled even if you disabled them in the Cloudflare dashboard. **Always comment out cron entries in `wrangler.toml`** and use manual `/sync` calls instead.
+Every `wrangler deploy` re-registers trigger configuration from `wrangler.toml`. If cron entries exist in `wrangler.toml`, they will be re-enabled even if you disabled them in the Cloudflare dashboard. **Always keep cron entries commented out in `wrangler.toml`** and use manual `/sync` calls instead.
 
 ### 2. Delta sync must never overwrite `product:index` with a filtered result
-If you implement delta sync (fetching only recently modified products), the `syncAllProducts()` function receives a filtered list. Never write that filtered list to `product:index` — it will overwrite the full index with a partial or empty list. Only write `product:index` during a full sync (`modifiedAfter` is undefined).
+If you implement delta sync (fetching only recently modified products), the `syncAllProducts()` function receives a filtered list. Never write that filtered list to `product:index` — it will overwrite the full index with a partial or empty list. Only write `product:index` during a full sync (when `modifiedAfter` is undefined).
 
 ### 3. ACF fields are not saved when `woocommerce_update_product` fires
 `woocommerce_update_product` fires at `save_post` priority 10. ACF writes custom fields at priority 20. Always add a second `acf/save_post` hook at priority 30 to catch PDF URLs, addon options, and any other ACF-managed fields.
 
 ### 4. Rebuild debounce is 5 minutes
-Multiple webhook updates in quick succession only trigger one rebuild. The KV is always updated immediately on each webhook; only the rebuild is debounced. The site rebuild picks up all KV changes accumulated during the debounce window.
+Multiple webhook updates in quick succession only trigger one rebuild. The KV is always updated immediately on each webhook — only the rebuild is debounced. If you save a product within 5 minutes of a recent rebuild, the KV entry is updated correctly but no new build fires. The next rebuild (manual or from a subsequent save) picks up all accumulated changes. Trigger a manual rebuild if needed: `gh workflow run deploy.yml --repo [org]/[repo] --ref production`
+
+### 5. KV writes must happen before the image caching loop
+The image caching loop inside `syncSingleProduct()` can use up to ~40 subrequests (WebP probe + fallback × images × sizes). Cloudflare limits Workers to 50 subrequests per invocation. If KV writes come after the image loop and the loop exhausts the limit, the KV write never executes — the product appears "synced" (webhook returned 200) but `synced_at` never updates. Always write to KV first, then run the image loop.
 
 ---
 
-*This document covers the UK site implementation. Adjust worker names, KV namespace IDs, domain URLs, and webhook secrets for each regional site.*
+*Last updated: 2026-02-19*
