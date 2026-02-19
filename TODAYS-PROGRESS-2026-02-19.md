@@ -92,11 +92,66 @@ After KV was repaired, a fresh GitHub Actions build was dispatched manually (`wo
 
 ---
 
+## 2. Full Partial Sync Coverage — Categories and ACF/PDF Fields
+
+### Issue
+Two content types had no partial sync on update:
+1. **Product categories** — no WordPress plugin triggered the category webhook endpoints that already existed in the worker
+2. **ACF/PDF fields** — `woocommerce_update_product` fires at `save_post` priority 10, but ACF saves its custom fields at priority 20. This meant the worker synced the product from the API *before* PDF URLs, addon options, and badge fields were committed to the database.
+
+### Fix 1 — New `hercules-category-webhooks.php`
+
+**File:** `wordpress-updates/hercules-category-webhooks.php` (NEW)
+
+Hooks into WooCommerce product category taxonomy events and sends to the worker endpoints that were already implemented but never called:
+
+| WordPress Hook | Worker Endpoint |
+|---------------|----------------|
+| `created_product_cat` | `/webhook/category-create` |
+| `edited_product_cat` | `/webhook/category-update` |
+| `delete_product_cat` | `/webhook/category-delete` |
+
+Worker handles: updates `category:{id}`, `category:slug:{slug}`, `category:index`, caches category image, triggers rebuild (debounced 5 min).
+
+### Fix 2 — ACF late-save hook in `hercules-product-webhooks.php`
+
+**File:** `wordpress-updates/hercules-product-webhooks.php` (UPDATED)
+
+Added `acf/save_post` hook at **priority 30** (after ACF commits data at priority 20). This sends a second product sync webhook after all ACF fields are saved, ensuring `pdf_url`, `pdf_2_url`, addon options, and badge meta are up-to-date when the worker fetches the product.
+
+```php
+// Priority 30 = after ACF saves (priority 20) = after woocommerce_update_product (priority 10)
+add_action('acf/save_post', array($this, 'on_acf_save'), 30);
+```
+
+Filters to `product` post type only, skips autosaves and revisions.
+
+### Partial Sync Coverage — Before vs After
+
+| Content Type | Before | After |
+|-------------|--------|-------|
+| Products (create/update/delete) | ✅ | ✅ |
+| Product variations | ✅ | ✅ |
+| ACF fields (PDFs, addons, badges) | ⚠️ Timing bug | ✅ Fixed |
+| Categories (create/update/delete) | ❌ No plugin | ✅ Fixed |
+| Posts (create/update/delete) | ✅ | ✅ |
+| Menus | ✅ (rebuild trigger) | ✅ |
+| Product attributes (term renames) | ❌ | ❌ (rare — manual sync) |
+
+### Deployment
+- Both plugins deployed to production and staging mu-plugins via SSH
+- Backups created as `.bak-20260219`
+- PHP syntax verified on server
+
+---
+
 ## 3. Files Modified Today
 
 | File | Change |
 |------|--------|
 | `workers/product-sync/wrangler.toml` | Disabled cron triggers in both default and production envs |
+| `wordpress-updates/hercules-category-webhooks.php` | NEW — category create/update/delete webhook plugin |
+| `wordpress-updates/hercules-product-webhooks.php` | Added `acf/save_post` hook at priority 30 for PDF/ACF field sync |
 
 ---
 
@@ -105,6 +160,13 @@ After KV was repaired, a fresh GitHub Actions build was dispatched manually (`wo
 | Version ID | Change |
 |------------|--------|
 | `b0a1ece1` | Restored clean pre-delta-sync worker, cron disabled |
+
+## 6. WordPress Server Deployments Today
+
+| File | Environments | Change |
+|------|-------------|--------|
+| `mu-plugins/hercules-category-webhooks.php` | Production + Staging | NEW |
+| `mu-plugins/hercules-product-webhooks.php` | Production + Staging | Added ACF hook |
 
 ---
 
