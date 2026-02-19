@@ -938,6 +938,20 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     false // Don't sync images - no R2 bucket
   );
 
+  // Save product data to KV BEFORE the image loop.
+  // The image loop uses forceRefresh=true which generates up to ~40 subrequests
+  // (WebP probe + fallback × 5 images × 2 sizes). On the free plan the per-invocation
+  // subrequest limit is 50. If the KV write were after the loop it would never execute
+  // when the loop nears the limit, silently losing the name/price/category update.
+  await env.PRODUCTS_KV.put(
+    `product:${product.id}`,
+    JSON.stringify(syncedProduct)
+  );
+  await env.PRODUCTS_KV.put(
+    `product:slug:${product.slug}`,
+    JSON.stringify(syncedProduct)
+  );
+
   // Cache ALL gallery images in KV (same logic as batch sync)
   // Force refresh on webhook updates to ensure image changes are captured
   // Cache both main (361x361) and thumb (100x100) versions
@@ -976,18 +990,20 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     }
   }
 
-  // Update product with cached image count
-  syncedProduct.cached_image_count = cachedImageCount;
-
-  // Store in KV with updated cached_image_count
-  await env.PRODUCTS_KV.put(
-    `product:${product.id}`,
-    JSON.stringify(syncedProduct)
-  );
-  await env.PRODUCTS_KV.put(
-    `product:slug:${product.slug}`,
-    JSON.stringify(syncedProduct)
-  );
+  // Re-save with updated cached_image_count if any images were cached.
+  // This second write is best-effort — if the subrequest limit was hit during
+  // the image loop the count may be 0, but the product data above is already saved.
+  if (cachedImageCount > 0) {
+    syncedProduct.cached_image_count = cachedImageCount;
+    await env.PRODUCTS_KV.put(
+      `product:${product.id}`,
+      JSON.stringify(syncedProduct)
+    );
+    await env.PRODUCTS_KV.put(
+      `product:slug:${product.slug}`,
+      JSON.stringify(syncedProduct)
+    );
+  }
 
   console.log(`Synced product ${productId} with ${cachedImageCount} cached images`);
 
