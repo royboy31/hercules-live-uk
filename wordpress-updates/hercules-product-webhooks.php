@@ -34,6 +34,11 @@ class Hercules_Product_Webhooks {
 
         // Variation changes
         add_action('woocommerce_save_product_variation', array($this, 'on_variation_save'), 10, 2);
+
+        // ACF field saves (PDF URLs, addon options, badges) — priority 30 ensures
+        // ACF has already committed its data to the DB (ACF saves at priority 20)
+        // before we send the webhook so the worker fetches up-to-date field values.
+        add_action('acf/save_post', array($this, 'on_acf_save'), 30);
     }
 
     /**
@@ -115,6 +120,28 @@ class Hercules_Product_Webhooks {
             'id' => $parent_id,
             'variation_id' => $variation_id,
             'action' => 'variation_update',
+        ));
+    }
+
+    /**
+     * ACF field save (fires at priority 30, after ACF commits data at priority 20).
+     * Catches PDF URL, addon option, and badge meta changes that are saved via ACF
+     * and may not reliably trigger woocommerce_update_product in all save paths.
+     */
+    public function on_acf_save($post_id) {
+        // Numeric post IDs only (ACF also fires for options pages with string IDs)
+        if (!is_numeric($post_id)) return;
+        if ($this->should_skip($post_id)) return;
+        if (get_post_type($post_id) !== 'product') return;
+
+        $product = wc_get_product($post_id);
+        if (!$product) return;
+
+        $this->send_webhook('/webhook/product-update', array(
+            'id'     => (int) $post_id,
+            'name'   => $product->get_name(),
+            'action' => 'acf_save',
+            'status' => $product->get_status(),
         ));
     }
 
