@@ -7,9 +7,9 @@ compatibility_date = "2024-01-01"
 binding = "PRODUCTS_KV"
 id = "50743a0e269f4450b61bb690847534c4"
 
-# Scheduled triggers (cron jobs)
-[triggers]
-crons = ["0 3 * * *"]  # Run daily at 3 AM UTC
+# Scheduled triggers (cron jobs) — disabled to prevent uncontrolled full syncs
+# [triggers]
+# crons = ["0 3 * * *"]  # Run daily at 3 AM UTC
 
 # Environment variables
 [vars]
@@ -27,8 +27,8 @@ vars = { WC_STORE_URL = "https://staging.hercules-merchandise.co.uk" }
 binding = "PRODUCTS_KV"
 id = "82f827d101734ce38ccc89629c7ae919"
 
-[env.production.triggers]
-crons = ["0 3 * * *"]
+# [env.production.triggers]
+# crons = ["0 3 * * *"]
 
 [env.production.vars]
 WC_STORE_URL = "https://hercules-merchandise.co.uk"
