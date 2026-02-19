@@ -145,21 +145,69 @@ Filters to `product` post type only, skips autosaves and revisions.
 
 ---
 
-## 3. Files Modified Today
+## 3. Homepage — Dynamic Product Spotlight
+
+### Issue
+`src/pages/index.astro` imported 8 products from a static JSON file (`src/data/homepage-products.json`) with hardcoded image paths and product names. Changes to product names or images in WooCommerce were never reflected on the homepage.
+
+### Fix
+
+Replaced the static import with a build-time parallel fetch of all 8 products from the worker:
+
+```typescript
+// 8 product slugs define the carousel order
+const homepageProductSlugs = ['baseball-cap', 'custom-club-slides-and-slippers', ...];
+
+// Fetched in parallel at Astro build time
+const productResults = await Promise.all(
+  homepageProductSlugs.map(async (slug) => {
+    const res = await fetch(`${WORKER_URL}/product/${slug}`);
+    const p = await res.json();
+    return { id: p.id, name: p.name, slug: p.slug,
+             image: `${WORKER_URL}/image/${p.slug}`, alt: p.images?.[0]?.alt || p.name };
+  })
+);
+```
+
+Product names, images, and alt text now come from the KV store on every build. The image URL uses the same `${WORKER_URL}/image/{slug}` pattern as category product cards (KV-cached WebP).
+
+---
+
+## 4. Full Sync Coverage — After Today's Fixes
+
+| Content Type | Before | After |
+|-------------|--------|-------|
+| Products (create/update/delete) | ✅ | ✅ |
+| Product variations | ✅ | ✅ |
+| ACF fields (PDFs, addons, badges) | ⚠️ Timing bug | ✅ Fixed |
+| Categories (create/update/delete) | ❌ No plugin | ✅ Fixed |
+| Posts (create/update/delete) | ✅ | ✅ |
+| Homepage product spotlight | ❌ Hardcoded static JSON | ✅ Fixed |
+| Product detail pages | ✅ | ✅ |
+| Collection/category pages | ✅ | ✅ |
+| Blog pages | ✅ | ✅ |
+| Menus | ✅ (rebuild trigger) | ✅ |
+
+---
+
+## 5. Files Modified Today
 
 | File | Change |
 |------|--------|
 | `workers/product-sync/wrangler.toml` | Disabled cron triggers in both default and production envs |
+| `workers/product-sync/src/index.ts` | Fixed: KV writes moved before image loop (subrequest limit fix) |
 | `wordpress-updates/hercules-category-webhooks.php` | NEW — category create/update/delete webhook plugin |
 | `wordpress-updates/hercules-product-webhooks.php` | Added `acf/save_post` hook at priority 30 for PDF/ACF field sync |
+| `src/pages/index.astro` | Homepage now fetches products dynamically from worker at build time |
 
 ---
 
-## 4. Worker Deployments Today
+## 6. Worker Deployments Today
 
 | Version ID | Change |
 |------------|--------|
 | `b0a1ece1` | Restored clean pre-delta-sync worker, cron disabled |
+| `098947b7` | Fixed subrequest limit bug: KV writes now happen before image loop |
 
 ## 6. WordPress Server Deployments Today
 

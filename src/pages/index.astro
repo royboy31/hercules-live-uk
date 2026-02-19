@@ -7,10 +7,50 @@ import DesignService from '../components/DesignService.astro';
 import HerculesMerchandise from '../components/HerculesMerchandise.astro';
 import TrustLogos from '../components/TrustLogos.astro';
 import CustomerReviews from '../components/CustomerReviews.astro';
-import homepageData from '../data/homepage-products.json';
 import { siteConfig } from '../config/seo';
 
-const products = homepageData.products;
+const WORKER_URL = import.meta.env.WORKER_URL || 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
+
+// Slugs for the 8 homepage spotlight products (order determines carousel order)
+const homepageProductSlugs = [
+  'baseball-cap',
+  'custom-club-slides-and-slippers',
+  'custom-printed-pennants',
+  'custom-sublimated-towels',
+  'custom-football-shirts',
+  'custom-football-scarf',
+  'custom-football-beanie-hats',
+  'custom-made-bucket-hats',
+];
+
+// Fetch all 8 products in parallel from the worker at build time
+const productResults = await Promise.all(
+  homepageProductSlugs.map(async (slug) => {
+    try {
+      const res = await fetch(`${WORKER_URL}/product/${slug}`);
+      if (!res.ok) return null;
+      const p = await res.json();
+      return {
+        id: p.id as number,
+        name: p.name as string,
+        slug: p.slug as string,
+        image: `${WORKER_URL}/image/${p.slug}`,
+        alt: (p.images?.[0]?.alt as string) || (p.name as string),
+      };
+    } catch {
+      return null;
+    }
+  })
+);
+
+// Filter out any slugs that failed to load
+const products = productResults.filter(Boolean) as Array<{
+  id: number;
+  name: string;
+  slug: string;
+  image: string;
+  alt: string;
+}>;
 
 // SEO configuration for homepage
 const pageTitle = 'Custom Football Scarves and Personalised Merchandise';
