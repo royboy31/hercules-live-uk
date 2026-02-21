@@ -17,13 +17,40 @@
         var container = document.getElementById('trustindex-widget-home');
         if (!container) return;
         var section = container.closest('.reviews-section');
+
+        // Direct Google Maps URL — bypasses TrustIndex's broken redirect (returns 404)
+        var GOOGLE_MAPS_URL = 'https://www.google.com/maps/place/?q=place_id:ChIJTbL993688180EV93O6ERpK8bY8ZrpZM';
+
+        // Replace any TrustIndex redirect links with the direct Google Maps URL
+        function fixReviewLinks(root) {
+          // Fix <a href="...trustindex..."> links
+          var links = root.querySelectorAll('a[href*="admin.trustindex.io"]');
+          links.forEach(function(a) {
+            a.href = GOOGLE_MAPS_URL;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+          });
+          // Fix data-platform-page-url attributes (TrustIndex attaches click handlers to these)
+          var items = root.querySelectorAll('[data-platform-page-url*="admin.trustindex.io"]');
+          items.forEach(function(el) {
+            el.setAttribute('data-platform-page-url', GOOGLE_MAPS_URL);
+          });
+        }
+
         function loadWidget() {
           var script = document.createElement('script');
           script.src = 'https://cdn.trustindex.io/loader.js?cb5ae3e497fe7730a8269155c1e';
           script.defer = true;
           script.async = true;
           container.appendChild(script);
+
+          // Watch for TrustIndex to render its widget DOM and fix links as they appear
+          var linkObserver = new MutationObserver(function() {
+            fixReviewLinks(container);
+          });
+          linkObserver.observe(container, { childList: true, subtree: true });
         }
+
         if (section && 'IntersectionObserver' in window) {
           var observer = new IntersectionObserver(function(entries) {
             if (entries[0].isIntersecting) {
