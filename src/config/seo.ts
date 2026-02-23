@@ -160,6 +160,7 @@ export function getProductSchema(product: {
   currency?: string;
   availability?: 'InStock' | 'OutOfStock' | 'PreOrder';
   condition?: 'NewCondition' | 'UsedCondition' | 'RefurbishedCondition';
+  offerCount?: number;
 }) {
   const schema: any = {
     '@context': 'https://schema.org',
@@ -184,6 +185,7 @@ export function getProductSchema(product: {
       priceCurrency: product.currency || 'GBP',
       lowPrice: product.priceMin,
       highPrice: product.priceMax || product.priceMin,
+      offerCount: product.offerCount ?? 1,
       availability: `https://schema.org/${product.availability || 'InStock'}`,
       itemCondition: `https://schema.org/${product.condition || 'NewCondition'}`,
     };
