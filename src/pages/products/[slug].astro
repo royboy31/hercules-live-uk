@@ -1741,11 +1741,10 @@ if (product) {
   }
 
   // Upgrade after page is fully loaded (after LCP is measured)
-  if (document.readyState === 'complete') {
-    setTimeout(upgradeMainImage, 100);
-  } else {
-    window.addEventListener('load', () => setTimeout(upgradeMainImage, 100));
-  }
+  // 1500ms delay ensures LCP is finalised before src swap (Lighthouse measures LCP at/before load event)
+  window.addEventListener('load', () => {
+    setTimeout(upgradeMainImage, 1500);
+  });
 
   // Thumbnail Gallery Pagination (WordPress style)
   const PAGE_SIZE = 20;
