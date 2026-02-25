@@ -126,6 +126,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
   modifiedTime={modifiedDate}
   author={siteConfig.siteName}
   jsonLd={jsonLdSchemas}
+  preloadImages={postImage ? [postImage] : []}
 >
   <!-- Main Content Area -->
   <div class="blog-single">
@@ -159,7 +160,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
           <!-- Featured Image -->
           {postImage && (
             <div class="featured-image">
-              <img src={postImage} alt={post.title} />
+              <img src={postImage} alt={post.title} fetchpriority="high" loading="eager" width="768" height="768" />
             </div>
           )}
 
@@ -215,7 +216,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
                   <a href={`/blogs/uk/${rp.slug}`} class="related-item">
                     {rp.slug && (
                       <div class="related-thumb">
-                        <img src={`${WORKER_URL}/post-image/${rp.slug}`} alt={rp.title} loading="lazy" />
+                        <img src={`${WORKER_URL}/post-image/${rp.slug}`} alt={rp.title} loading="lazy" width="120" height="120" />
                       </div>
                     )}
                     <div class="related-info">
