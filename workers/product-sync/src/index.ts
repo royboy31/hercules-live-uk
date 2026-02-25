@@ -554,6 +554,32 @@ async function syncImageToKV(
   }
 }
 
+// Lightweight helper to store an already-fetched image buffer into KV (used by on-the-fly proxy)
+async function cacheImageInKV(
+  kv: KVNamespace,
+  imageBuffer: ArrayBuffer,
+  contentType: string,
+  originalUrl: string,
+  kvKey: string,
+  imageIndex: number,
+  size: string
+): Promise<void> {
+  try {
+    const bytes = new Uint8Array(imageBuffer);
+    const chunkSize = 0x8000;
+    let binaryString = '';
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    await kv.put(kvKey, btoa(binaryString), {
+      metadata: { contentType, originalUrl, syncedAt: new Date().toISOString(), imageIndex, size },
+    });
+  } catch (e) {
+    console.error('Failed to async cache image in KV:', e);
+  }
+}
+
 // Image sync helper (optional - only used if R2 bucket is available)
 async function syncImageToR2(
   bucket: R2Bucket | undefined,
@@ -630,7 +656,7 @@ async function transformProduct(
     // Parse conditional prices - convert string prices to numbers
     const conditionalPrices = v.conditional_prices?.map(cp => ({
       qty: Number(cp.qty),
-      price: typeof cp.price === 'string' ? parseFloat(cp.price) : cp.price,
+      price: typeof cp.price === 'string' ? parseFloat(cp.price.replace(',', '.')) : cp.price,
     }));
 
     return {
@@ -738,7 +764,7 @@ const MAX_GALLERY_IMAGES = 5;
 
 // Main sync function with batching support
 // forceImageRefresh: if true, re-download all images even if already cached (for upgrading image sizes)
-async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: boolean = false): Promise<{ synced: number; errors: string[]; hasMore: boolean; nextOffset: number }> {
+async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: boolean = false, forceIndex: boolean = false): Promise<{ synced: number; errors: string[]; hasMore: boolean; nextOffset: number }> {
   const client = new WooCommerceClient(
     env.WC_STORE_URL,
     env.WC_CONSUMER_KEY,
@@ -844,28 +870,49 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
       }
     }
 
-    // Update product index with full list on first batch
+    // Update product index with full list on first batch.
+    // Two guards protect the existing index from bad WooCommerce responses:
+    //   1. Zero guard  — empty response (API error, maintenance mode) must never write [].
+    //   2. Threshold guard — partial response (plugin conflict, DB timeout returning fewer
+    //      pages than expected) must not silently drop products from the index.
+    //      Threshold: new count must be >= 80% of existing count, OR existing index is empty
+    //      (first-ever sync). Pass ?force_index=true to the /sync endpoint to bypass if a
+    //      large legitimate deletion has happened.
     if (offset === 0) {
-      const productIndex = allProducts.map(p => {
-        // Extract badge data from WooCommerce meta_data
-        const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
-        const madeInEurope = getMeta('made_in_europe');
-        const greenProduct = getMeta('green_product');
-        const madeInUk = getMeta('made_in_uk');
+      const existingIndexStr = await env.PRODUCTS_KV.get('product:index');
+      const existingCount = existingIndexStr ? JSON.parse(existingIndexStr).length : 0;
+      const threshold = Math.floor(existingCount * 0.8);
+      // forceIndex passed in from caller (e.g. /sync?force_index=true) to override threshold
 
-        return {
-          id: p.id,
-          name: p.name,
-          slug: p.slug,
-          featured: p.featured,
-          categories: p.categories.map(c => c.slug),
-          menu_order: p.menu_order || 0,
-          made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
-          green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
-          made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
-        };
-      });
-      await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
+      if (allProducts.length === 0) {
+        console.error(`syncAllProducts: WooCommerce returned 0 products — skipping product:index write (existing: ${existingCount})`);
+      } else if (existingCount > 0 && allProducts.length < threshold && !forceIndex) {
+        console.error(`syncAllProducts: WooCommerce returned ${allProducts.length} products but existing index has ${existingCount} (threshold: ${threshold}) — skipping product:index write. Add ?force_index=true to /sync to override.`);
+      } else {
+        const productIndex = allProducts.map(p => {
+          // Extract badge data from WooCommerce meta_data
+          const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
+          const madeInEurope = getMeta('made_in_europe');
+          const greenProduct = getMeta('green_product');
+          const madeInUk = getMeta('made_in_uk');
+
+          return {
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            featured: p.featured,
+            categories: p.categories.map(c => c.slug),
+            menu_order: p.menu_order || 0,
+            made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
+            green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
+            made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
+          };
+        });
+        await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
+        if (existingCount > 0 && forceIndex) {
+          console.log(`syncAllProducts: force_index=true — wrote product:index with ${productIndex.length} products (was ${existingCount})`);
+        }
+      }
     }
 
     // Store sync timestamp only when complete
@@ -893,6 +940,9 @@ async function deleteProduct(env: Env, productId: number): Promise<void> {
     await env.PRODUCTS_KV.delete(`product:slug:${product.slug}`);
     // Delete cached image
     await env.PRODUCTS_KV.delete(`image:${product.slug}`);
+    // Delete product-config cache
+    await env.PRODUCTS_KV.delete(`product-config:${product.id}`);
+    await env.PRODUCTS_KV.delete(`product-config:${product.slug}`);
   }
 
   // Delete by ID
@@ -938,11 +988,18 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     false // Don't sync images - no R2 bucket
   );
 
-  // Save product data to KV BEFORE the image loop.
-  // The image loop uses forceRefresh=true which generates up to ~40 subrequests
-  // (WebP probe + fallback × 5 images × 2 sizes). On the free plan the per-invocation
-  // subrequest limit is 50. If the KV write were after the loop it would never execute
-  // when the loop nears the limit, silently losing the name/price/category update.
+  // Preserve cached_image_count from the existing KV entry so a title/price change
+  // (no new images, forceRefresh: false) doesn't reset the count to zero.
+  const existingProductStr = await env.PRODUCTS_KV.get(`product:${product.id}`);
+  if (existingProductStr) {
+    const existingProduct = JSON.parse(existingProductStr);
+    if (existingProduct.cached_image_count) {
+      syncedProduct.cached_image_count = existingProduct.cached_image_count;
+    }
+  }
+
+  // Save product data to KV BEFORE the image loop so name/price/category updates
+  // are committed even if the subrequest limit is hit during image caching.
   await env.PRODUCTS_KV.put(
     `product:${product.id}`,
     JSON.stringify(syncedProduct)
@@ -952,9 +1009,17 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     JSON.stringify(syncedProduct)
   );
 
-  // Cache ALL gallery images in KV (same logic as batch sync)
-  // Force refresh on webhook updates to ensure image changes are captured
-  // Cache both main (361x361) and thumb (100x100) versions
+  // Invalidate product-config cache so next configurator load re-fetches from WordPress
+  await Promise.all([
+    env.PRODUCTS_KV.delete(`product-config:${product.id}`),
+    env.PRODUCTS_KV.delete(`product-config:${product.slug}`),
+  ]);
+
+  // Cache only images not yet in KV (forceRefresh: false).
+  // WordPress always generates new filenames on upload, so a genuinely new image
+  // will always be a cache miss and get written. Skipping re-downloads for existing
+  // images reduces KV writes from ~19 to 3 per webhook on a title/price change.
+  // Cache both main (361x361) and thumb (100x100) versions.
   let cachedImageCount = 0;
   if (product.slug && product.images?.length > 0) {
     const imagesToCache = Math.min(product.images.length, MAX_GALLERY_IMAGES);
@@ -963,24 +1028,24 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
       if (img?.src) {
         // Cache main size (361x361) for category cards
         const mainUrl = img.src.replace(/(\.[^.]+)$/, '-361x361$1');
-        let mainSuccess = await syncImageToKV(env.PRODUCTS_KV, mainUrl, product.slug, i, true, 'full');
+        let mainSuccess = await syncImageToKV(env.PRODUCTS_KV, mainUrl, product.slug, i, false, 'full');
         if (!mainSuccess && img.src !== mainUrl) {
           // Fallback to 300x300, then 600x600, then original
           const fallback300 = img.src.replace(/(\.[^.]+)$/, '-300x300$1');
-          mainSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback300, product.slug, i, true, 'full');
+          mainSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback300, product.slug, i, false, 'full');
           if (!mainSuccess) {
             const fallback600 = img.src.replace(/(\.[^.]+)$/, '-600x600$1');
-            mainSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback600, product.slug, i, true, 'full');
+            mainSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback600, product.slug, i, false, 'full');
           }
         }
 
         // Cache thumbnail (100x100) for thumbnail carousels
         const thumbUrl = img.src.replace(/(\.[^.]+)$/, '-100x100$1');
-        let thumbSuccess = await syncImageToKV(env.PRODUCTS_KV, thumbUrl, product.slug, i, true, 'thumb');
+        let thumbSuccess = await syncImageToKV(env.PRODUCTS_KV, thumbUrl, product.slug, i, false, 'thumb');
         if (!thumbSuccess && img.src !== thumbUrl) {
           // Fallback to 83x83 if 100x100 doesn't exist
           const fallback83 = img.src.replace(/(\.[^.]+)$/, '-83x83$1');
-          thumbSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback83, product.slug, i, true, 'thumb');
+          thumbSuccess = await syncImageToKV(env.PRODUCTS_KV, fallback83, product.slug, i, false, 'thumb');
         }
 
         if (mainSuccess || thumbSuccess) {
@@ -990,9 +1055,9 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     }
   }
 
-  // Re-save with updated cached_image_count if any images were cached.
-  // This second write is best-effort — if the subrequest limit was hit during
-  // the image loop the count may be 0, but the product data above is already saved.
+  // Re-save with updated cached_image_count only when new images were cached this run.
+  // When no new images are found, cached_image_count was already preserved from the
+  // existing KV entry above so no second write is needed.
   if (cachedImageCount > 0) {
     syncedProduct.cached_image_count = cachedImageCount;
     await env.PRODUCTS_KV.put(
@@ -1425,8 +1490,10 @@ async function deletePost(env: Env, postId: number): Promise<void> {
   console.log(`Deleted post ${postId} from KV`);
 }
 
-// Debounce interval for site rebuilds (5 minutes)
-const REBUILD_DEBOUNCE_MS = 5 * 60 * 1000;
+// Debounce interval for site rebuilds (60 seconds).
+// 60s lets an editor save, wait for the ~2 min GitHub Actions build, then save again.
+// 5 minutes was too long — saves 2 and 3 within a 5-min window never triggered a rebuild.
+const REBUILD_DEBOUNCE_MS = 60 * 1000;
 
 // Trigger GitHub Actions workflow to rebuild and deploy the site
 // Uses workflow_dispatch API to trigger the deploy.yml workflow
@@ -1703,6 +1770,37 @@ export default {
       }
     }
 
+    // Webhook endpoint for attribute term changes (flush all product-config cache)
+    if (url.pathname === '/webhook/attribute-term-update' && request.method === 'POST') {
+      try {
+        const signature = request.headers.get('X-WC-Webhook-Signature') || '';
+        const payload = await request.text();
+
+        // Verify HMAC-SHA256 signature
+        const isValid = await verifyWebhookSignature(payload, signature, env.WEBHOOK_SECRET);
+        if (!isValid) {
+          console.log('Invalid webhook signature received');
+          return new Response('Invalid signature', { status: 401 });
+        }
+
+        // Flush all product-config:* keys so the next configurator load re-fetches fresh data
+        const listed = await env.PRODUCTS_KV.list({ prefix: 'product-config:' });
+        await Promise.all(listed.keys.map(k => env.PRODUCTS_KV.delete(k.name)));
+
+        console.log(`Attribute term change: flushed ${listed.keys.length} product-config cache keys`);
+
+        return new Response(JSON.stringify({ success: true, flushed: listed.keys.length }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('Attribute term update webhook error:', error);
+        return new Response(JSON.stringify({ error: String(error) }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // ============================================
     // BLOG POST WEBHOOK ENDPOINTS
     // ============================================
@@ -1789,6 +1887,7 @@ export default {
 
     // Manual sync trigger (protected) - supports batching with offset
     // Use ?force_images=true to re-download all images (for upgrading image sizes)
+    // Use ?force_index=true to bypass the 80% threshold guard (needed after large legitimate deletions)
     if (url.pathname === '/sync' && request.method === 'POST') {
       const authHeader = request.headers.get('Authorization');
       if (authHeader !== `Bearer ${env.WEBHOOK_SECRET}`) {
@@ -1798,7 +1897,8 @@ export default {
       // Get offset from query string for batch syncing
       const offset = parseInt(url.searchParams.get('offset') || '0', 10);
       const forceImages = url.searchParams.get('force_images') === 'true';
-      const result = await syncAllProducts(env, offset, forceImages);
+      const forceIndex = url.searchParams.get('force_index') === 'true';
+      const result = await syncAllProducts(env, offset, forceImages, forceIndex);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -2383,6 +2483,18 @@ export default {
         return new Response('Missing post slug', { status: 400 });
       }
 
+      // Check Cloudflare edge cache first
+      const postEdgeCache = caches.default;
+      const postCacheKey = new Request(request.url, { method: 'GET' });
+      const postEdgeCached = await postEdgeCache.match(postCacheKey);
+      if (postEdgeCached) {
+        return postEdgeCached;
+      }
+
+      // Optional resize params
+      const postRequestedWidth = url.searchParams.get('w');
+      const postRequestedFormat = url.searchParams.get('format');
+
       // Get image from KV with metadata (post images are stored with 'post:' prefix)
       const { value: base64Image, metadata } = await env.PRODUCTS_KV.getWithMetadata<{
         contentType: string;
@@ -2391,11 +2503,48 @@ export default {
       }>(`image:post:${slug}`);
 
       if (!base64Image) {
-        // Image not cached - try to get original URL from post data and redirect
+        // Image not cached - proxy from WordPress directly (no redirect)
         const post = await env.PRODUCTS_KV.get<SyncedPost>(`post:slug:${slug}`, 'json');
         if (post && post.featuredImage) {
-          // Redirect to original WordPress image
-          return Response.redirect(post.featuredImage, 302);
+          const featuredUrl = post.featuredImage;
+
+          // If resize requested, try cdn-cgi first
+          if (postRequestedWidth || postRequestedFormat) {
+            const options: string[] = ['fit=contain', 'quality=85'];
+            if (postRequestedWidth) options.push(`width=${postRequestedWidth}`);
+            if (postRequestedFormat === 'webp') options.push('format=webp');
+            try {
+              const featuredUrlObj = new URL(featuredUrl);
+              const cdnCgiUrl = `${featuredUrlObj.origin}/cdn-cgi/image/${options.join(',')}${featuredUrlObj.pathname}`;
+              const resizedResponse = await fetch(cdnCgiUrl);
+              if (resizedResponse.ok) {
+                const headers = new Headers(resizedResponse.headers);
+                headers.set('Cache-Control', 'public, max-age=86400');
+                headers.set('Access-Control-Allow-Origin', '*');
+                const r = new Response(resizedResponse.body, { status: 200, headers });
+                ctx.waitUntil(postEdgeCache.put(postCacheKey, r.clone()));
+                return r;
+              }
+            } catch {}
+          }
+
+          // Proxy the image directly
+          try {
+            const proxyRes = await fetch(featuredUrl, { headers: { 'User-Agent': 'Hercules-Product-Sync/1.0' } });
+            if (proxyRes.ok) {
+              const imgBuf = await proxyRes.arrayBuffer();
+              const ct = proxyRes.headers.get('content-type') || 'image/jpeg';
+              const proxiedResponse = new Response(imgBuf, {
+                headers: {
+                  'Content-Type': ct,
+                  'Cache-Control': 'public, max-age=86400',
+                  'Access-Control-Allow-Origin': '*',
+                },
+              });
+              ctx.waitUntil(postEdgeCache.put(postCacheKey, proxiedResponse.clone()));
+              return proxiedResponse;
+            }
+          } catch {}
         }
         return new Response('Post image not found', { status: 404 });
       }
@@ -2407,14 +2556,16 @@ export default {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      // Return image with caching headers
-      return new Response(bytes, {
+      // Return image with caching headers, store to edge cache
+      const kvPostResponse = new Response(bytes, {
         headers: {
           'Content-Type': metadata?.contentType || 'image/jpeg',
-          'Cache-Control': 'public, max-age=31536000, immutable', // Cache for 1 year
+          'Cache-Control': 'public, max-age=31536000, immutable',
           'Access-Control-Allow-Origin': '*',
         },
       });
+      ctx.waitUntil(postEdgeCache.put(postCacheKey, kvPostResponse.clone()));
+      return kvPostResponse;
     }
 
     // Get sync status
@@ -2463,10 +2614,18 @@ export default {
       // Optional resizing parameters
       const requestedWidth = url.searchParams.get('w');
       const requestedFormat = url.searchParams.get('format');
-      const requestedSize = url.searchParams.get('size'); // 'thumb' for 300x300 thumbnails
+      const requestedSize = url.searchParams.get('size'); // 'thumb' for small thumbnails
 
       if (!slug) {
         return new Response('Missing product slug', { status: 400 });
+      }
+
+      // Check Cloudflare edge cache first — serves without invoking Worker at all on cache hit
+      const edgeCache = caches.default;
+      const cacheKey = new Request(request.url, { method: 'GET' });
+      const edgeCached = await edgeCache.match(cacheKey);
+      if (edgeCached) {
+        return edgeCached;
       }
 
       // Key format: image:{slug} for main (index 0), image:{slug}:{index} for gallery
@@ -2477,7 +2636,7 @@ export default {
       }
 
       // Get image from KV with metadata
-      let { value: base64Image, metadata } = await env.PRODUCTS_KV.getWithMetadata<{
+      const { value: base64Image, metadata } = await env.PRODUCTS_KV.getWithMetadata<{
         contentType: string;
         originalUrl: string;
         syncedAt: string;
@@ -2485,63 +2644,87 @@ export default {
         size?: string;
       }>(kvKey);
 
-      // If requesting thumb but not cached, fall back to full size
-      if (!base64Image && requestedSize === 'thumb') {
-        const fullKey = imageIndex === 0 ? `image:${slug}` : `image:${slug}:${imageIndex}`;
-        const fullResult = await env.PRODUCTS_KV.getWithMetadata<{
-          contentType: string;
-          originalUrl: string;
-          syncedAt: string;
-          imageIndex?: number;
-          size?: string;
-        }>(fullKey);
-        if (fullResult.value) {
-          base64Image = fullResult.value;
-          metadata = fullResult.metadata;
-        }
-      }
-
       if (!base64Image) {
-        // Image not cached - try to get original URL from product data and redirect
+        // Image not cached - fetch from WordPress and proxy directly (no redirect)
         const product = await env.PRODUCTS_KV.get<SyncedProduct>(`product:slug:${slug}`, 'json');
         if (product && product.images && product.images[imageIndex]) {
-          // Redirect to WordPress image URL (with optional resizing via cdn-cgi)
           const originalUrl = product.images[imageIndex].src;
           if (originalUrl) {
             // If resizing requested, use Cloudflare cdn-cgi Image Resizing
             if (requestedWidth || requestedFormat) {
               const options: string[] = ['fit=contain', 'quality=85'];
-              if (requestedWidth) {
-                options.push(`width=${requestedWidth}`);
-              }
-              if (requestedFormat === 'webp') {
-                options.push('format=webp');
-              }
+              if (requestedWidth) options.push(`width=${requestedWidth}`);
+              if (requestedFormat === 'webp') options.push('format=webp');
               try {
                 const originalUrlObj = new URL(originalUrl);
                 const cdnCgiUrl = `${originalUrlObj.origin}/cdn-cgi/image/${options.join(',')}${originalUrlObj.pathname}`;
                 const resizedResponse = await fetch(cdnCgiUrl);
                 if (resizedResponse.ok) {
                   const headers = new Headers(resizedResponse.headers);
-                  headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+                  headers.set('Cache-Control', 'public, max-age=86400');
                   headers.set('Access-Control-Allow-Origin', '*');
-                  return new Response(resizedResponse.body, {
-                    status: 200,
-                    headers
-                  });
+                  return new Response(resizedResponse.body, { status: 200, headers });
                 }
               } catch (e) {
-                // Fall through to redirect if resizing fails
+                // Fall through to direct proxy below
               }
             }
-            return Response.redirect(originalUrl, 302);
+
+            // Proxy image directly: try WebP of sized variants first, then original
+            // For thumbnail requests, try smaller WordPress crops first
+            const sizeVariants = requestedSize === 'thumb'
+              ? ['-100x100', '-150x150', '-83x83', '-300x300', '']
+              : ['-361x361', '-300x300', ''];
+
+            for (const size of sizeVariants) {
+              const sizedUrl = size
+                ? originalUrl.replace(/(\.[^.]+)$/, `${size}$1`)
+                : originalUrl;
+              const webpUrl = /\.(png|jpe?g)$/i.test(sizedUrl) ? sizedUrl + '.webp' : sizedUrl;
+
+              // Try WebP first
+              try {
+                const res = await fetch(webpUrl, { headers: { 'User-Agent': 'Hercules-Product-Sync/1.0' } });
+                if (res.ok) {
+                  const imageBuffer = await res.arrayBuffer();
+                  ctx.waitUntil(cacheImageInKV(env.PRODUCTS_KV, imageBuffer, 'image/webp', originalUrl, kvKey, imageIndex, requestedSize || 'full'));
+                  const proxyWebpResponse = new Response(imageBuffer, {
+                    headers: {
+                      'Content-Type': 'image/webp',
+                      'Cache-Control': 'public, max-age=86400',
+                      'Access-Control-Allow-Origin': '*',
+                    },
+                  });
+                  ctx.waitUntil(edgeCache.put(cacheKey, proxyWebpResponse.clone()));
+                  return proxyWebpResponse;
+                }
+              } catch {}
+
+              // Fall back to original format for this size variant
+              try {
+                const res = await fetch(sizedUrl, { headers: { 'User-Agent': 'Hercules-Product-Sync/1.0' } });
+                if (res.ok) {
+                  const imageBuffer = await res.arrayBuffer();
+                  const contentType = res.headers.get('content-type') || 'image/png';
+                  ctx.waitUntil(cacheImageInKV(env.PRODUCTS_KV, imageBuffer, contentType, originalUrl, kvKey, imageIndex, requestedSize || 'full'));
+                  const proxyFallbackResponse = new Response(imageBuffer, {
+                    headers: {
+                      'Content-Type': contentType,
+                      'Cache-Control': 'public, max-age=86400',
+                      'Access-Control-Allow-Origin': '*',
+                    },
+                  });
+                  ctx.waitUntil(edgeCache.put(cacheKey, proxyFallbackResponse.clone()));
+                  return proxyFallbackResponse;
+                }
+              } catch {}
+            }
           }
         }
         return new Response('Image not found', { status: 404 });
       }
 
-      // If resizing requested, use Cloudflare Image Resizing via cdn-cgi URL
-      // This works on any Cloudflare-proxied domain (cf.image requires zone with Image Resizing)
+      // Image found in KV — handle optional resize
       if (requestedWidth || requestedFormat) {
         let originalUrl = metadata?.originalUrl;
 
@@ -2554,33 +2737,21 @@ export default {
         }
 
         if (originalUrl) {
-          // Build cdn-cgi image URL options
           const options: string[] = ['fit=contain', 'quality=85'];
-          if (requestedWidth) {
-            options.push(`width=${requestedWidth}`);
-          }
-          if (requestedFormat === 'webp') {
-            options.push('format=webp');
-          }
+          if (requestedWidth) options.push(`width=${requestedWidth}`);
+          if (requestedFormat === 'webp') options.push('format=webp');
 
-          // Extract path from original URL (e.g., /wp-content/uploads/...)
-          // URL format: https://staging.hercules-merchandise.co.uk/cdn-cgi/image/options/path
           try {
             const originalUrlObj = new URL(originalUrl);
             const cdnCgiUrl = `${originalUrlObj.origin}/cdn-cgi/image/${options.join(',')}${originalUrlObj.pathname}`;
-
             const resizedResponse = await fetch(cdnCgiUrl);
             if (resizedResponse.ok) {
               const headers = new Headers(resizedResponse.headers);
               headers.set('Cache-Control', 'public, max-age=31536000, immutable');
               headers.set('Access-Control-Allow-Origin', '*');
-              return new Response(resizedResponse.body, {
-                status: 200,
-                headers
-              });
+              return new Response(resizedResponse.body, { status: 200, headers });
             }
           } catch (e) {
-            // Fall through to serve original if resizing fails
             console.error('Cloudflare cdn-cgi Image Resizing failed:', e);
           }
         }
@@ -2593,14 +2764,16 @@ export default {
         bytes[i] = binaryString.charCodeAt(i);
       }
 
-      // Return image with caching headers
-      return new Response(bytes, {
+      // Return image with caching headers, store to edge cache
+      const kvResponse = new Response(bytes, {
         headers: {
           'Content-Type': metadata?.contentType || 'image/png',
-          'Cache-Control': 'public, max-age=31536000, immutable', // Cache for 1 year
+          'Cache-Control': 'public, max-age=31536000, immutable',
           'Access-Control-Allow-Origin': '*',
         },
       });
+      ctx.waitUntil(edgeCache.put(cacheKey, kvResponse.clone()));
+      return kvResponse;
     }
 
     // Serve cached category images

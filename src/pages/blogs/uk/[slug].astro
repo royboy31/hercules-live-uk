@@ -216,7 +216,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
                   <a href={`/blogs/uk/${rp.slug}`} class="related-item">
                     {rp.slug && (
                       <div class="related-thumb">
-                        <img src={`${WORKER_URL}/post-image/${rp.slug}`} alt={rp.title} loading="lazy" width="120" height="120" />
+                        <img src={`${WORKER_URL}/post-image/${rp.slug}?w=240`} alt={rp.title} loading="lazy" width="120" height="120" />
                       </div>
                     )}
                     <div class="related-info">
@@ -480,7 +480,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
 
   /* CTA Box */
   .cta-box {
-    background-image: url('/images/blog/sidebar-cta-bg.png');
+    background-image: url('/images/blog/sidebar-cta-bg.webp');
     background-size: cover;
     background-position: center;
     border-radius: 20px;
