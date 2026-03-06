@@ -23,6 +23,18 @@ Disallow: /search
 Disallow: /*?s=
 Disallow: /*?search=
 
+# Disallow spam/hacked paths (legacy compromise)
+Disallow: /itemgoods/
+Disallow: /ctg/
+Disallow: /f/
+Disallow: /mbr/
+Disallow: /odr/
+Disallow: /evercompare/
+Disallow: /categoryindex/
+Disallow: /*?.shtml
+Disallow: /*?t=
+Disallow: /*?l=
+
 # Disallow API endpoints
 Disallow: /api/
 Disallow: /wp-json/

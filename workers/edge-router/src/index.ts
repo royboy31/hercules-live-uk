@@ -127,6 +127,42 @@ export default {
     }
 
     // ============================================
+    // SPAM URL BLOCKING - Return 410 Gone for hacked/spam URLs
+    // These were indexed by Google from a previous WordPress compromise.
+    // 410 signals "permanently removed" for faster de-indexing.
+    // ============================================
+
+    // Spam path prefixes (old hacked URLs)
+    const SPAM_PATH_PREFIXES = [
+      '/itemgoods/', '/ctg/', '/f/', '/mbr/', '/odr/',
+      '/evercompare/', '/categoryindex/',
+    ];
+
+    for (const prefix of SPAM_PATH_PREFIXES) {
+      if (pathname.startsWith(prefix)) {
+        return new Response('410 Gone', {
+          status: 410,
+          headers: { 'Cache-Control': 'public, max-age=86400', 'X-Blocked': 'spam-path' },
+        });
+      }
+    }
+
+    // Spam query parameters (e.g. ?t=..., ?l=..., ?.shtml...)
+    // Only block on root or pages that shouldn't have these params.
+    // Preserve legitimate WooCommerce params (wc-ajax, add-to-cart, s, search, etc.)
+    const SPAM_QUERY_PATTERNS = [/[?&]t=/, /[?&]l=/, /\.shtml/];
+    if (search && !search.includes('wc-ajax') && !search.includes('add-to-cart') && !search.includes('removed_item')) {
+      for (const pattern of SPAM_QUERY_PATTERNS) {
+        if (pattern.test(search)) {
+          return new Response('410 Gone', {
+            status: 410,
+            headers: { 'Cache-Control': 'public, max-age=86400', 'X-Blocked': 'spam-query' },
+          });
+        }
+      }
+    }
+
+    // ============================================
     // THIRD-PARTY SCRIPT PROXY - Cache with proper headers
     // ============================================
     if (pathname.startsWith('/cached-scripts/')) {
@@ -311,10 +347,14 @@ export default {
     }
 
     // Create the proxied request
+    // Note: GET/HEAD requests cannot have a body in the Workers runtime.
+    // Some clients (e.g. Exact Online) send GET with Content-Length: 0, which
+    // causes a TypeError if we pass request.body through.
+    const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
     const proxyRequest = new Request(targetUrl.toString(), {
       method: request.method,
       headers,
-      body: request.body,
+      body: hasBody ? request.body : undefined,
       redirect: 'manual', // Handle redirects ourselves
     });
 
