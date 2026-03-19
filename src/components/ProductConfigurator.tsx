@@ -276,16 +276,15 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     fetchConfig();
   }, [productSlug, workerUrl]);
 
-  // Check if current product is already in cart
+  // Check if any product is already in cart
   useEffect(() => {
-    if (!config) return;
     const checkCart = () => {
       const cart = cartStore.get();
-      setProductInCart(cart.items.some(item => item.product_id === config.product_id));
+      setProductInCart(cart.count > 0);
     };
     checkCart();
     return cartStore.subscribe(checkCart);
-  }, [config]);
+  }, []);
 
   // Get attribute keys (filtered for visibility)
   const attributeKeys = useMemo(() => {
