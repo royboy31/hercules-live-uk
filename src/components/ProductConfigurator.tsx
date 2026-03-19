@@ -215,6 +215,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
   const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<'quote' | 'cart' | null>(null);
+  const [productInCart, setProductInCart] = useState(false);
 
   // Fetch product config on mount
   useEffect(() => {
@@ -274,6 +275,17 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     }
     fetchConfig();
   }, [productSlug, workerUrl]);
+
+  // Check if current product is already in cart
+  useEffect(() => {
+    if (!config) return;
+    const checkCart = () => {
+      const cart = cartStore.get();
+      setProductInCart(cart.items.some(item => item.product_id === config.product_id));
+    };
+    checkCart();
+    return cartStore.subscribe(checkCart);
+  }, [config]);
 
   // Get attribute keys (filtered for visibility)
   const attributeKeys = useMemo(() => {
@@ -1165,7 +1177,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('quote')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Processing...' : 'Create quote'}
+            {addToCartLoading ? 'Processing...' : productInCart ? 'Add to quote' : 'Create quote'}
           </button>
           <small>We will send you a PDF</small>
         </div>
