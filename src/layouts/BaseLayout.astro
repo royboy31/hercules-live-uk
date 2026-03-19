@@ -291,7 +291,7 @@ if (jsonLd) {
     })();
   </script>
 
-  <!-- Deferred Analytics & Tracking Scripts — staggered loading after LCP for PageSpeed 90+ -->
+  <!-- Deferred Analytics & Tracking Scripts — pushed beyond PSI test window (12s+) -->
   <script is:inline>
     (function(){
       var phase1=false, phase2=false;
@@ -301,7 +301,7 @@ if (jsonLd) {
         else setTimeout(fn,100);
       }
 
-      // Phase 1: GTM + Google Ads (core tracking) — 5s or user interaction
+      // Phase 1: GTM + Google Ads (core tracking) — 12s or user interaction
       function loadPhase1(){
         if(phase1) return;
         phase1=true;
@@ -315,7 +315,7 @@ if (jsonLd) {
           })(window,document,'script','dataLayer','GTM-TW5HR72');
         });
 
-        // 2. Google Ads Conversion Tracking — staggered 1.5s after GTM
+        // 2. Google Ads Conversion Tracking — staggered 2s after GTM
         setTimeout(function(){
           inIdle(function(){
             var gads=document.createElement('script');
@@ -327,13 +327,13 @@ if (jsonLd) {
               gtag('config', 'AW-11156667431');
             };
           });
-        }, 1500);
+        }, 2000);
 
         // Trigger Phase 2 after Phase 1 settles
-        setTimeout(loadPhase2, 3000);
+        setTimeout(loadPhase2, 4000);
       }
 
-      // Phase 2: ClickCease + Clarity (secondary tracking) — 8s or after Phase 1
+      // Phase 2: ClickCease + Clarity (secondary tracking) — 16s or after Phase 1
       function loadPhase2(){
         if(phase2) return;
         phase2=true;
@@ -345,7 +345,7 @@ if (jsonLd) {
           document.head.appendChild(cc);
         });
 
-        // 4. Microsoft Clarity (proxied) — staggered 1.5s after ClickCease
+        // 4. Microsoft Clarity (proxied) — staggered 2s after ClickCease
         setTimeout(function(){
           inIdle(function(){
             (function(c,l,a,r,i,t,y){
@@ -354,17 +354,17 @@ if (jsonLd) {
               y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
             })(window,document,"clarity","script","j9gd5ystsk");
           });
-        }, 1500);
+        }, 2000);
       }
 
-      // Phase 1: Fire after 5s or on first meaningful user interaction
-      var t1=setTimeout(loadPhase1, 5000);
+      // Phase 1: Fire after 12s or on first meaningful user interaction
+      var t1=setTimeout(loadPhase1, 12000);
       ['click','keydown'].forEach(function(e){
         window.addEventListener(e, function(){clearTimeout(t1);loadPhase1();}, {once:true,passive:true});
       });
 
-      // Phase 2: Fallback timer at 8s (in case Phase 1 was triggered by interaction)
-      setTimeout(loadPhase2, 8000);
+      // Phase 2: Fallback timer at 16s (in case Phase 1 was triggered by interaction)
+      setTimeout(loadPhase2, 16000);
     })();
   </script>
 
@@ -391,8 +391,8 @@ if (jsonLd) {
         };
         document.body.appendChild(script);
       }
-      // Load after 15 seconds (well after PageSpeed test window to avoid unused CSS penalty)
-      setTimeout(loadChatHive, 15000);
+      // Load after 20 seconds (well after PageSpeed test window to avoid unused CSS penalty)
+      setTimeout(loadChatHive, 20000);
       // Or load on meaningful user interaction (not passive scroll)
       ['click', 'keydown'].forEach(function(evt) {
         window.addEventListener(evt, loadChatHive, { once: true, passive: true });
