@@ -257,9 +257,9 @@ select:focus {
 .top-performer-section,
 .why-choose-section,
 .design-service-section,
-.hercules-merchandise-section,
-.trust-logos-section,
-.customer-reviews-section {
+.hercules-section,
+.trust-section,
+.reviews-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
 }
