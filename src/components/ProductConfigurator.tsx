@@ -9,6 +9,7 @@ interface TermInfo {
   slug: string;
   name: string;
   description: string;
+  subtitle: string;
   thumbnail_id: number;
   thumbnail_url: string;
 }
@@ -21,6 +22,9 @@ interface AttributeData {
   enabled_if: string;
   enabled_if_value: string;
   minimum_qty: string;
+  image_text_position: 'above' | 'next_to' | 'under';
+  image_items_per_line: number;
+  image_text_weight: 'normal' | 'medium' | 'bold';
 }
 
 interface AddonOption {
@@ -215,7 +219,6 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
   const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<'quote' | 'cart' | null>(null);
-  const [productInCart, setProductInCart] = useState(false);
 
   // Fetch product config on mount
   useEffect(() => {
@@ -276,16 +279,6 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     fetchConfig();
   }, [productSlug, workerUrl]);
 
-  // Check if any product is already in cart
-  useEffect(() => {
-    const checkCart = () => {
-      const cart = cartStore.get();
-      setProductInCart(cart.count > 0);
-    };
-    checkCart();
-    return cartStore.subscribe(checkCart);
-  }, []);
-
   // Get attribute keys (filtered for visibility)
   const attributeKeys = useMemo(() => {
     if (!config) return [];
@@ -301,43 +294,6 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       return !(attr.terms.length === 1 && attr.terms[0].slug === 'default');
     });
   }, [config, attributeKeys]);
-
-  // Get available terms for an attribute, filtered by what variations actually exist
-  // given the already-selected attributes from prior steps
-  const getAvailableTerms = (attrKey: string, visibleIndex: number): TermInfo[] => {
-    if (!config) return [];
-    const attr = config.attributes[attrKey];
-    if (!attr) return attr?.terms || [];
-
-    // Collect selected attributes from prior steps only
-    const priorSelections: Record<string, string> = {};
-    for (let i = 0; i < visibleIndex; i++) {
-      const priorKey = visibleAttributeKeys[i];
-      if (selectedAttributes[priorKey]) {
-        priorSelections[priorKey] = selectedAttributes[priorKey];
-      }
-    }
-
-    // If no prior selections, show all terms
-    if (Object.keys(priorSelections).length === 0) return attr.terms;
-
-    // Filter terms to only those that have at least one matching variation
-    return attr.terms.filter(term => {
-      return config.variations.some(v => {
-        // Check this term matches
-        const normalizedAttrKey = attrKey.replace('attribute_', '');
-        const variationValue = v.attributes[attrKey] || v.attributes[`attribute_${normalizedAttrKey}`] || v.attributes[normalizedAttrKey];
-        if (variationValue !== term.slug) return false;
-
-        // Check all prior selections match
-        return Object.entries(priorSelections).every(([priorKey, priorValue]) => {
-          const normalizedPriorKey = priorKey.replace('attribute_', '');
-          const vVal = v.attributes[priorKey] || v.attributes[`attribute_${normalizedPriorKey}`] || v.attributes[normalizedPriorKey];
-          return vVal === priorValue;
-        });
-      });
-    });
-  };
 
   // Check if an attribute should be visible based on enabled_if conditions
   const isAttributeVisible = (attrKey: string, index: number): boolean => {
@@ -405,7 +361,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
   // Calculate quantity range — adjusts min based on selected addon price_table minimums
   const quantityRange = useMemo(() => {
-    const prices = matchedVariation?.conditional_prices;
+    const prices = matchedVariation?.conditional_prices || config?.variations?.[0]?.conditional_prices;
     if (!prices?.length) {
       return { min: 50, max: 500 };
     }
@@ -476,16 +432,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
   // Handle attribute selection
   const handleAttributeSelect = (attrKey: string, value: string, stepIndex: number) => {
-    setSelectedAttributes(prev => {
-      const next = { ...prev, [attrKey]: value };
-      // Clear downstream attribute selections when a prior attribute changes
-      for (let i = stepIndex + 1; i < visibleAttributeKeys.length; i++) {
-        delete next[visibleAttributeKeys[i]];
-      }
-      return next;
-    });
-    // Reset quantity when attributes change
-    setQuantitySelected(0);
+    setSelectedAttributes(prev => ({ ...prev, [attrKey]: value }));
     setMaxVisibleStep(stepIndex + 1);
   };
 
@@ -654,7 +601,6 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
         if (!isAttributeVisible(attrKey, visibleIndex)) return null;
 
         const attr = config.attributes[attrKey];
-        const availableTerms = getAvailableTerms(attrKey, visibleIndex);
         const isExpanded = maxVisibleStep === visibleIndex;
         const selectedValue = selectedAttributes[attrKey];
         const isCompleted = !!selectedValue;
@@ -670,7 +616,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                   <div className="kd-prod-attribute-title-wrapper">
                     <span>{stepNumber}: {attr.display_title || attrKey.replace('pa_', '')}</span>
                   </div>
-                  <span className="kd-selected-val">{availableTerms.find(t => t.slug === selectedValue)?.name || selectedValue}</span>
+                  <span className="kd-selected-val">{attr.terms.find(t => t.slug === selectedValue)?.name || selectedValue}</span>
                   <button type="button" className="kd-selected-chng-btn" onClick={(e) => { e.stopPropagation(); setMaxVisibleStep(visibleIndex); }}>
                     Change
                   </button>
@@ -687,38 +633,60 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {attr.display_description && <p style={{ marginBottom: '10px', color: '#666' }}>{attr.display_description}</p>}
 
                 {/* Image Selector */}
-                {attr.display_type === 'image_selector' && (
-                  <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: '20px' }}>
-                    {availableTerms.map(term => (
-                      <div
-                        key={term.slug}
-                        className="kd-image-selector-col"
-                        onClick={() => handleAttributeSelect(attrKey, term.slug, visibleIndex)}
-                        style={{
-                          border: selectedValue === term.slug ? '2px solid #469ADC' : '1px solid #ccc',
-                          background: selectedValue === term.slug ? '#e6f0fa' : '#fff',
-                          padding: '10px',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexFlow: 'row',
-                          width: '30.5%',
-                        }}
-                      >
-                        <div className="kd-image-selector-title">{term.name}</div>
-                        {term.thumbnail_url && (
-                          <img
-                            src={term.thumbnail_url}
-                            alt={term.name}
-                            style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {attr.display_type === 'image_selector' && (() => {
+                  const textPos = attr.image_text_position || 'next_to';
+                  const perLine = attr.image_items_per_line || 3;
+                  const textWeight = attr.image_text_weight || 'medium';
+                  const weightMap: Record<string, number> = { normal: 400, medium: 500, bold: 700 };
+                  const gapPx = 20;
+                  const colWidth = `calc((100% - ${(perLine - 1) * gapPx}px) / ${perLine})`;
+                  const isVertical = textPos === 'above' || textPos === 'under';
+
+                  return (
+                    <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: `${gapPx}px` }}>
+                      {attr.terms.map(term => (
+                        <div
+                          key={term.slug}
+                          className={`kd-image-selector-col kd-img-sel-${textPos}`}
+                          onClick={() => handleAttributeSelect(attrKey, term.slug, visibleIndex)}
+                          style={{
+                            border: selectedValue === term.slug ? '2px solid #469ADC' : '1px solid #ccc',
+                            background: selectedValue === term.slug ? '#e6f0fa' : '#fff',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: isVertical ? 'column' : 'row',
+                            justifyContent: isVertical ? 'center' : 'space-between',
+                            alignItems: 'center',
+                            width: colWidth,
+                            textAlign: isVertical ? 'center' : undefined,
+                          }}
+                        >
+                          {textPos === 'under' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginBottom: '6px' }} />
+                          )}
+                          {textPos === 'under' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
+                          )}
+                          <div className="kd-image-selector-title" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.name}</div>
+                          {textPos === 'above' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginTop: '6px' }} />
+                          )}
+                          {textPos === 'above' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
+                          )}
+                          {textPos === 'next_to' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }} />
+                          )}
+                          {textPos === 'next_to' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500, marginLeft: '5px' }}>{term.subtitle}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* Dropdown */}
                 {attr.display_type === 'dropdown' && (
@@ -728,7 +696,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #ddd' }}
                   >
                     <option value="">Select an option</option>
-                    {availableTerms.map(term => (
+                    {attr.terms.map(term => (
                       <option key={term.slug} value={term.slug}>{term.name}</option>
                     ))}
                   </select>
@@ -737,7 +705,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {/* Select Boxes */}
                 {attr.display_type === 'select_boxes' && (
                   <div className="box-selector" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    {availableTerms.map(term => (
+                    {attr.terms.map(term => (
                       <div
                         key={term.slug}
                         className="box-selector-item"
@@ -801,7 +769,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     {addon.options.map(option => (
                       <div
                         key={option.name}
-                        className="kd-image-selector-col"
+                        className="kd-image-selector-col kd-img-sel-next_to"
                         onClick={() => handleAddonSelect(addon.id, option.name, stepIndex)}
                         style={{
                           border: selectedValue === option.name ? '2px solid #469ADC' : '1px solid #ccc',
@@ -809,11 +777,11 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                           padding: '10px',
                           borderRadius: '10px',
                           cursor: 'pointer',
-                          display: 'inline-flex',
+                          display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          flexFlow: 'row',
-                          width: '30.5%',
+                          flexDirection: 'row',
+                          width: 'calc((100% - 40px) / 3)',
                         }}
                       >
                         <div className="kd-image-selector-title">{option.name}</div>
@@ -959,7 +927,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
           {maxVisibleStep === quantityStepIndex && (
             <div className="kd-step-collapse">
               {/* Quantity tier options — filtered by addon minimum qty */}
-              {(matchedVariation?.conditional_prices || [])
+              {(matchedVariation?.conditional_prices || config.variations?.[0]?.conditional_prices || [])
                 .filter(tier => parseFloatSafe(tier.qty) >= quantityRange.min)
                 .map((tier, idx, filteredTiers) => {
                 const tierQty = parseFloatSafe(tier.qty);
@@ -1176,7 +1144,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('quote')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Processing...' : productInCart ? 'Add to quote' : 'Create quote'}
+            {addToCartLoading ? 'Processing...' : 'Create quote'}
           </button>
           <small>We will send you a PDF</small>
         </div>

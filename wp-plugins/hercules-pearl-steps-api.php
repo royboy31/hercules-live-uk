@@ -96,6 +96,9 @@ function hercules_build_product_config($product) {
         $enabled_if = '';
         $enabled_if_value = '';
         $minimum_qty = '';
+        $image_text_position = 'next_to';
+        $image_items_per_line = '3';
+        $image_text_weight = 'medium';
 
         // Find attribute settings
         foreach ($registered_attrs as $attr_obj) {
@@ -107,6 +110,9 @@ function hercules_build_product_config($product) {
                 $enabled_if = get_post_meta($product_id, 'attribute_enabled_if_pa_' . $attr_obj->attribute_name, true);
                 $enabled_if_value = get_post_meta($product_id, 'attribute_enabled_if_value_pa_' . $attr_obj->attribute_name, true);
                 $minimum_qty = get_post_meta($product_id, 'attribute_minimum_qty_pa_' . $attr_obj->attribute_name, true);
+                $image_text_position = get_option("wc_attribute_image_text_position_{$attribute_id}", 'next_to');
+                $image_items_per_line = get_option("wc_attribute_image_items_per_line_{$attribute_id}", '3');
+                $image_text_weight = get_option("wc_attribute_image_text_weight_{$attribute_id}", 'medium');
                 break;
             }
         }
@@ -152,6 +158,9 @@ function hercules_build_product_config($product) {
             'enabled_if' => $enabled_if ?: '',
             'enabled_if_value' => $enabled_if_value ?: '',
             'minimum_qty' => $minimum_qty ?: '',
+            'image_text_position' => $image_text_position,
+            'image_items_per_line' => (int) $image_items_per_line,
+            'image_text_weight' => $image_text_weight,
         ];
     }
 
