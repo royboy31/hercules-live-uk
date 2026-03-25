@@ -9,6 +9,7 @@ interface TermInfo {
   slug: string;
   name: string;
   description: string;
+  subtitle: string;
   thumbnail_id: number;
   thumbnail_url: string;
 }
@@ -21,6 +22,9 @@ interface AttributeData {
   enabled_if: string;
   enabled_if_value: string;
   minimum_qty: string;
+  image_text_position: 'above' | 'next_to' | 'under';
+  image_items_per_line: number;
+  image_text_weight: 'normal' | 'medium' | 'bold';
 }
 
 interface AddonOption {
@@ -629,38 +633,60 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {attr.display_description && <p style={{ marginBottom: '10px', color: '#666' }}>{attr.display_description}</p>}
 
                 {/* Image Selector */}
-                {attr.display_type === 'image_selector' && (
-                  <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: '20px' }}>
-                    {attr.terms.map(term => (
-                      <div
-                        key={term.slug}
-                        className="kd-image-selector-col"
-                        onClick={() => handleAttributeSelect(attrKey, term.slug, visibleIndex)}
-                        style={{
-                          border: selectedValue === term.slug ? '2px solid #469ADC' : '1px solid #ccc',
-                          background: selectedValue === term.slug ? '#e6f0fa' : '#fff',
-                          padding: '10px',
-                          borderRadius: '10px',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexFlow: 'row',
-                          width: '30.5%',
-                        }}
-                      >
-                        <div className="kd-image-selector-title">{term.name}</div>
-                        {term.thumbnail_url && (
-                          <img
-                            src={term.thumbnail_url}
-                            alt={term.name}
-                            style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {attr.display_type === 'image_selector' && (() => {
+                  const textPos = attr.image_text_position || 'next_to';
+                  const perLine = attr.image_items_per_line || 3;
+                  const textWeight = attr.image_text_weight || 'medium';
+                  const weightMap: Record<string, number> = { normal: 400, medium: 500, bold: 700 };
+                  const gapPx = 20;
+                  const colWidth = `calc((100% - ${(perLine - 1) * gapPx}px) / ${perLine})`;
+                  const isVertical = textPos === 'above' || textPos === 'under';
+
+                  return (
+                    <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: `${gapPx}px` }}>
+                      {attr.terms.map(term => (
+                        <div
+                          key={term.slug}
+                          className={`kd-image-selector-col kd-img-sel-${textPos}`}
+                          onClick={() => handleAttributeSelect(attrKey, term.slug, visibleIndex)}
+                          style={{
+                            border: selectedValue === term.slug ? '2px solid #469ADC' : '1px solid #ccc',
+                            background: selectedValue === term.slug ? '#e6f0fa' : '#fff',
+                            padding: '10px',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: isVertical ? 'column' : 'row',
+                            justifyContent: isVertical ? 'center' : 'space-between',
+                            alignItems: 'center',
+                            width: colWidth,
+                            textAlign: isVertical ? 'center' : undefined,
+                          }}
+                        >
+                          {textPos === 'under' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginBottom: '6px' }} />
+                          )}
+                          {textPos === 'under' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
+                          )}
+                          <div className="kd-image-selector-title" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.name}</div>
+                          {textPos === 'above' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginTop: '6px' }} />
+                          )}
+                          {textPos === 'above' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
+                          )}
+                          {textPos === 'next_to' && term.thumbnail_url && (
+                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }} />
+                          )}
+                          {textPos === 'next_to' && term.subtitle && (
+                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500, marginLeft: '5px' }}>{term.subtitle}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {/* Dropdown */}
                 {attr.display_type === 'dropdown' && (
@@ -743,7 +769,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     {addon.options.map(option => (
                       <div
                         key={option.name}
-                        className="kd-image-selector-col"
+                        className="kd-image-selector-col kd-img-sel-next_to"
                         onClick={() => handleAddonSelect(addon.id, option.name, stepIndex)}
                         style={{
                           border: selectedValue === option.name ? '2px solid #469ADC' : '1px solid #ccc',
@@ -751,11 +777,11 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                           padding: '10px',
                           borderRadius: '10px',
                           cursor: 'pointer',
-                          display: 'inline-flex',
+                          display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          flexFlow: 'row',
-                          width: '30.5%',
+                          flexDirection: 'row',
+                          width: 'calc((100% - 40px) / 3)',
                         }}
                       >
                         <div className="kd-image-selector-title">{option.name}</div>
