@@ -55,6 +55,7 @@ export default defineConfig({
           '/quote-generator',
           '/search',
           '/api/',
+          '/wishlist',
         ];
         return !excludePatterns.some(pattern => page.includes(pattern));
       },
@@ -95,5 +96,7 @@ export default defineConfig({
     // Redirect German URLs to English
     '/produkte/*': '/products/*',
     '/kollektionen/*': '/collections/*',
+    // SEO: redirect standard sitemap path to actual sitemap
+    '/sitemap.xml': '/sitemap-index.xml',
   }
 });
