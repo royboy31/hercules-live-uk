@@ -99,6 +99,7 @@ function hercules_build_product_config($product) {
         $image_text_position = 'next_to';
         $image_items_per_line = '3';
         $image_text_weight = 'medium';
+        $image_footer_text = '';
 
         // Find attribute settings
         foreach ($registered_attrs as $attr_obj) {
@@ -113,6 +114,7 @@ function hercules_build_product_config($product) {
                 $image_text_position = get_option("wc_attribute_image_text_position_{$attribute_id}", 'next_to');
                 $image_items_per_line = get_option("wc_attribute_image_items_per_line_{$attribute_id}", '3');
                 $image_text_weight = get_option("wc_attribute_image_text_weight_{$attribute_id}", 'medium');
+                $image_footer_text = get_option("wc_attribute_image_footer_text_{$attribute_id}", '');
                 break;
             }
         }
@@ -129,6 +131,8 @@ function hercules_build_product_config($product) {
                     'slug' => $single_term_slug,
                     'name' => $single_term_slug,
                     'description' => '',
+                    'desc_above' => '',
+                    'desc_below' => '',
                     'thumbnail_id' => 0,
                     'thumbnail_url' => '',
                 ];
@@ -141,10 +145,15 @@ function hercules_build_product_config($product) {
                 $thumbnail_url = wp_get_attachment_image_url($thumbnail_id, 'full');
             }
 
+            $desc_above = get_term_meta($term_obj->term_id, 'image_selector_desc_above', true);
+            $desc_below = get_term_meta($term_obj->term_id, 'image_selector_desc_below', true);
+
             $terms_info[] = [
                 'slug' => $single_term_slug,
                 'name' => $term_obj->name,
                 'description' => $term_obj->description,
+                'desc_above' => $desc_above ?: '',
+                'desc_below' => $desc_below ?: '',
                 'thumbnail_id' => $thumbnail_id ? (int) $thumbnail_id : 0,
                 'thumbnail_url' => $thumbnail_url ?: '',
             ];
@@ -161,6 +170,7 @@ function hercules_build_product_config($product) {
             'image_text_position' => $image_text_position,
             'image_items_per_line' => (int) $image_items_per_line,
             'image_text_weight' => $image_text_weight,
+            'image_footer_text' => $image_footer_text,
         ];
     }
 

@@ -70,6 +70,26 @@
     word-break: break-word;
 }
 
+.kd-image-selector-desc {
+    color: #555;
+    font-family: Roboto;
+    font-size: 13px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.kd-image-selector-desc-above {
+    margin-bottom: 6px;
+}
+
+.kd-image-selector-desc-below {
+    margin-top: 6px;
+}
+
+.kd-image-selector-footer {
+    margin-top: 12px;
+}
+
 /* Mobile: max 2 per line */
 @media (max-width: 480px) {
     .kd-image-selector-col {
