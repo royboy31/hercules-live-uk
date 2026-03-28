@@ -2210,21 +2210,42 @@ export default {
       });
     }
 
+    // Purge all product-config cache entries
+    if (url.pathname === '/purge-product-configs' && request.method === 'POST') {
+      const authHeader = request.headers.get('X-Webhook-Secret') || '';
+      if (authHeader !== env.WEBHOOK_SECRET) {
+        return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+      }
+
+      try {
+        const list = await env.PRODUCTS_KV.list({ prefix: 'product-config:' });
+        let deleted = 0;
+        for (const key of list.keys) {
+          await env.PRODUCTS_KV.delete(key.name);
+          deleted++;
+        }
+        return new Response(JSON.stringify({ success: true, deleted }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: String(err) }), {
+          status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
     // Get product configuration for steps form (Pearl WC Steps data)
-    // This endpoint fetches from WordPress and caches in KV
+    // Always fetches fresh from WordPress — no KV cache so admin changes reflect immediately
     if (url.pathname.startsWith('/product-config/')) {
       const identifier = url.pathname.replace('/product-config/', '');
 
-      // Try to get from cache first
-      let configStr = await env.PRODUCTS_KV.get(`product-config:${identifier}`);
+      // Always fetch fresh from WordPress (no KV cache — settings must reflect immediately)
+      const wpUrl = identifier.match(/^\d+$/)
+        ? `${env.WC_STORE_URL}/wp-json/hercules/v1/product-config/${identifier}`
+        : `${env.WC_STORE_URL}/wp-json/hercules/v1/product-config-by-slug/${identifier}`;
+      let configStr: string | null = null;
 
-      if (!configStr) {
-        // Fetch from WordPress API
-        const wpUrl = identifier.match(/^\d+$/)
-          ? `${env.WC_STORE_URL}/wp-json/hercules/v1/product-config/${identifier}`
-          : `${env.WC_STORE_URL}/wp-json/hercules/v1/product-config-by-slug/${identifier}`;
-
-        try {
+      try {
           const response = await fetch(wpUrl, {
             headers: {
               'Content-Type': 'application/json',
@@ -2269,27 +2290,7 @@ export default {
 
           configStr = JSON.stringify(config);
 
-          // Try to cache in KV (non-blocking - continue even if cache fails)
-          try {
-            await env.PRODUCTS_KV.put(`product-config:${identifier}`, configStr, {
-              expirationTtl: 3600, // 1 hour
-            });
-
-            // Also cache by ID and slug for easy lookup
-            if (config.product_id) {
-              await env.PRODUCTS_KV.put(`product-config:${config.product_id}`, configStr, {
-                expirationTtl: 3600,
-              });
-            }
-            if (config.product_slug) {
-              await env.PRODUCTS_KV.put(`product-config:${config.product_slug}`, configStr, {
-                expirationTtl: 3600,
-              });
-            }
-          } catch (kvError) {
-            // KV write failed (likely daily limit exceeded) - log but continue
-            console.warn('KV cache write failed:', kvError instanceof Error ? kvError.message : 'Unknown error');
-          }
+          // No KV caching for product-config — always serve fresh from WP
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           console.error('Error fetching product config:', errorMessage);
@@ -2302,7 +2303,6 @@ export default {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           });
         }
-      }
 
       return new Response(configStr, {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

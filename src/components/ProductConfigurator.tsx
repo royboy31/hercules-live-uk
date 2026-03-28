@@ -9,7 +9,8 @@ interface TermInfo {
   slug: string;
   name: string;
   description: string;
-  subtitle: string;
+  desc_above: string;
+  desc_below: string;
   thumbnail_id: number;
   thumbnail_url: string;
 }
@@ -25,6 +26,7 @@ interface AttributeData {
   image_text_position: 'above' | 'next_to' | 'under';
   image_items_per_line: number;
   image_text_weight: 'normal' | 'medium' | 'bold';
+  image_footer_text: string;
 }
 
 interface AddonOption {
@@ -656,37 +658,50 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                             borderRadius: '10px',
                             cursor: 'pointer',
                             display: 'flex',
-                            flexDirection: isVertical ? 'column' : 'row',
-                            justifyContent: isVertical ? 'center' : 'space-between',
-                            alignItems: 'center',
+                            flexDirection: 'column',
+                            alignItems: isVertical ? 'center' : 'stretch',
                             width: colWidth,
                             textAlign: isVertical ? 'center' : undefined,
                           }}
                         >
-                          {textPos === 'under' && term.thumbnail_url && (
-                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginBottom: '6px' }} />
-                          )}
-                          {textPos === 'under' && term.subtitle && (
-                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
-                          )}
-                          <div className="kd-image-selector-title" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.name}</div>
-                          {textPos === 'above' && term.thumbnail_url && (
-                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginTop: '6px' }} />
-                          )}
-                          {textPos === 'above' && term.subtitle && (
-                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.subtitle}</div>
-                          )}
-                          {textPos === 'next_to' && term.thumbnail_url && (
-                            <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }} />
-                          )}
-                          {textPos === 'next_to' && term.subtitle && (
-                            <div className="kd-image-selector-subtitle" style={{ fontWeight: weightMap[textWeight] || 500, marginLeft: '5px' }}>{term.subtitle}</div>
+                          {textPos === 'next_to' ? (
+                            <>
+                              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <div className="kd-image-selector-title" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.name}</div>
+                                {term.thumbnail_url && (
+                                  <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', marginLeft: '5px' }} />
+                                )}
+                              </div>
+                              {term.desc_above && (
+                                <div className="kd-image-selector-desc kd-image-selector-desc-above" dangerouslySetInnerHTML={{ __html: term.desc_above }} />
+                              )}
+                              {term.desc_below && (
+                                <div className="kd-image-selector-desc kd-image-selector-desc-below" dangerouslySetInnerHTML={{ __html: term.desc_below }} />
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <div className="kd-image-selector-title" style={{ fontWeight: weightMap[textWeight] || 500 }}>{term.name}</div>
+                              {term.desc_above && (
+                                <div className="kd-image-selector-desc kd-image-selector-desc-above" dangerouslySetInnerHTML={{ __html: term.desc_above }} />
+                              )}
+                              {term.thumbnail_url && (
+                                <img src={term.thumbnail_url} alt={term.name} style={{ height: '48px', objectFit: 'contain', margin: '6px 0' }} />
+                              )}
+                              {term.desc_below && (
+                                <div className="kd-image-selector-desc kd-image-selector-desc-below" dangerouslySetInnerHTML={{ __html: term.desc_below }} />
+                              )}
+                            </>
                           )}
                         </div>
                       ))}
                     </div>
                   );
                 })()}
+
+                {attr.display_type === 'image_selector' && attr.image_footer_text && (
+                  <div className="kd-image-selector-desc kd-image-selector-footer" dangerouslySetInnerHTML={{ __html: attr.image_footer_text }} />
+                )}
 
                 {/* Dropdown */}
                 {attr.display_type === 'dropdown' && (
