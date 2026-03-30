@@ -53,6 +53,9 @@ function cleanContent(html: string): string {
   cleaned = cleaned.replace(/(<h[1-6][^>]*>)\s*#{1,6}\s*/gi, '$1');
   // Remove empty &nbsp; paragraphs that WordPress adds for spacing
   cleaned = cleaned.replace(/<p>\s*&nbsp;\s*<\/p>/gi, '');
+  // Fix missing spaces around inline tags (e.g. "from<strong>recycled" → "from <strong>recycled")
+  cleaned = cleaned.replace(/([a-zA-Z,;.])<(strong|em|a\s)/gi, '$1 <$2');
+  cleaned = cleaned.replace(/<\/(strong|em|a)>([a-zA-Z])/gi, '</$1> $2');
   return cleaned;
 }
 
