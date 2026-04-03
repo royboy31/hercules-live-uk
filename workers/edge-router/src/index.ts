@@ -194,6 +194,25 @@ export default {
     // 301 REDIRECTS - Old/alternate URLs to UK URL structure
     // ============================================
 
+    // HIGH-2 SEO Fix: Strip WooCommerce attribute parameters from product URLs
+    // These get indexed as separate pages (e.g., ?attribute_pa_options=default)
+    if (pathname.startsWith('/products/') && search) {
+      const params = new URLSearchParams(search);
+      let hasAttributeParams = false;
+      for (const key of params.keys()) {
+        if (key.startsWith('attribute_')) {
+          params.delete(key);
+          hasAttributeParams = true;
+        }
+      }
+      if (hasAttributeParams) {
+        const cleanUrl = params.toString()
+          ? `${url.origin}${pathname}?${params.toString()}`
+          : `${url.origin}${pathname}`;
+        return Response.redirect(cleanUrl, 301);
+      }
+    }
+
     // /blog -> /blogs/uk (UK blog)
     if (pathname === '/blog' || pathname === '/blog/') {
       return Response.redirect(new URL('/blogs/uk', url.origin).toString(), 301);
