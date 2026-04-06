@@ -56,6 +56,7 @@ export default defineConfig({
           '/search',
           '/api/',
           '/wishlist',
+          '/collections/uncategorized',
         ];
         return !excludePatterns.some(pattern => page.includes(pattern));
       },
@@ -98,5 +99,8 @@ export default defineConfig({
     '/kollektionen/*': '/collections/*',
     // SEO: redirect standard sitemap path to actual sitemap
     '/sitemap.xml': '/sitemap-index.xml',
+    // SEO: redirect old about-us URL to canonical about page
+    '/about-us': '/about/',
+    '/about-us/': '/about/',
   }
 });
