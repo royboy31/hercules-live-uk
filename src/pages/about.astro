@@ -3,8 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import TrustLogos from '../components/TrustLogos.astro';
 import ContactFormPopup from '../components/ContactFormPopup.tsx';
 
-const pageTitle = 'About Hercules Merchandise';
-const pageDescription = 'For over 10 years, Hercules Merchandising has been committed to offering you innovative and top-quality sports items. Number 1 in Sports Merchandise in the UK.';
+const pageTitle = 'About Hercules Merchandise | Custom Sports Merchandise UK';
+const pageDescription = 'Custom sports merchandise for clubs, teams and organisations. Free design service, European production, 3-4 week delivery. Trusted by 1,000+ customers across the UK and Europe.';
 ---
 
 <BaseLayout
@@ -16,54 +16,269 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
   <section class="hero-section">
     <div class="hero-container">
       <div class="hero-text">
-        <h1>About Us</h1>
-        <h2 class="hero-subtitle">Hercules Merchandise</h2>
-        <p>For over 10 years, Hercules Merchandising has been committed to offering you innovative and top-quality sports items.</p>
-        <p class="hero-highlight">Number 1 in Sports Merchandise<br>in the UK</p>
+        <h1>About Hercules Merchandise</h1>
+        <h2 class="hero-subtitle">Custom Sports Merchandise for Clubs, Teams and Organisations</h2>
+        <p>You're here because you're looking for custom sports merchandise.</p>
+        <p>Maybe you've done this before and found the process more complicated than expected. Or maybe this is your first time, and you want to make sure everything goes smoothly.</p>
+        <div class="hero-questions">
+          <p>Will the quality be right?</p>
+          <p>Will everything arrive on time?</p>
+          <p>Will the design look the way you imagined?</p>
+          <p>How much time will this take?</p>
+        </div>
+        <p>These are the questions we hear every day — and exactly what we focus on solving.</p>
+        <p>We specialise in custom sports merchandise and teamwear for clubs, teams, and organisations across the UK and Europe.</p>
       </div>
     </div>
   </section>
 
-  <!-- Section 1: Company Info (Text Left + Image Right) -->
+  <!-- Why We Started -->
   <section class="about-section">
     <div class="container">
       <div class="two-col">
         <div class="col-text">
-          <h2>Hercules Merchandise</h2>
-          <p>Establishes itself as the number 1 custom sports equipment supplier and wholesaler in the UK for sports clubs (Football, Rugby, Basketball, and many more!).</p>
-          <p>We support and supply high-quality items to clubs of various scales, ranging from amateur to professional levels. From small to very large series, we support projects with the same care, as evidenced by our <strong>97% customer satisfaction rate.</strong></p>
-          <p>Our expertise reflects the superior quality of our products and a fast, exclusive professional service.</p>
-          <p>We constantly strive to improve our service quality. Logistic innovation is at the heart of our concerns.</p>
-          <p><strong>Product Ranges:</strong></p>
-          <p>Our textile products are mainly of European origin: Exchange pennants and custom mini-pennants, fan scarves, football and rugby jerseys, stadium cushions, supporter flags, car flags, embroidered badges, key rings, and many more!</p>
-          <div class="cta-wrapper">
-            <ContactFormPopup client:visible triggerType="button" triggerText="Contact Us Now" triggerClassName="about-cta" />
+          <h2>Why We Started Hercules Merchandise</h2>
+          <p>My name is Gilles, and I'm the founder of Hercules Merchandise.</p>
+          <p>I've been working in custom sports merchandise and teamwear for over 15 years. During that time, I saw how often ordering personalised sports merchandise became unnecessarily complicated — unclear communication, slow processes, and too much work for the customer.</p>
+          <p>That's why I started Hercules: to make custom merchandise simple and reliable.</p>
+          <p>Today, we support more than <strong>1,000 customers every year</strong> across the UK, Ireland, France, Belgium, the Netherlands, and Germany.</p>
+          <p>We work with a wide range of clients — from professional sports clubs to schools, companies, events, and brands — always with the same goal: delivering products people are proud to wear and represent.</p>
+          <p>We've supported projects for organisations such as <strong>Leyton Orient, Barnet FC, London Irish, Coca-Cola, Red Bull, Mastercard, and Google</strong>, alongside many local clubs and organisations.</p>
+          <p>We're also consistently highly rated by our customers. If you'd like to get an honest view of how we work, we recommend having a look at our <a href="https://www.google.com/maps/place/Hercules+Merchandise" target="_blank" rel="noopener noreferrer">Google reviews</a>.</p>
+        </div>
+        <div class="col-image">
+          <img src="/images/about-hercules-hero.png" alt="Hercules Merchandise - custom sports products" loading="lazy" width="550" height="500" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What Makes Hercules Different -->
+  <section class="about-section about-section-alt">
+    <div class="container">
+      <h2 class="section-title">What Makes Hercules Different</h2>
+      <p class="section-intro">The main difference is simple: we focus on removing complexity and making the entire process easy and reliable.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <circle cx="11" cy="11" r="2"></circle>
+            </svg>
+          </div>
+          <h3>Free Design Service — No Experience Needed</h3>
+          <p>We don't use complicated design tools or builders. Instead, we offer a completely free design service, handled by our in-house team.</p>
+          <p>You send us your logo, your colours, or your ideas, and we create the design for you. You'll receive your design before production starts, and we refine it together — with up to <strong>five revision rounds</strong> included — until everything looks exactly right.</p>
+          <p>There are no costs during the design phase and no obligation to proceed.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <h3>Clear Communication and Fast Response</h3>
+          <p>From the moment you contact us, you'll receive clear communication and a quick response, usually within a few hours on working days.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 11l3 3L22 4"></path>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+          </div>
+          <h3>Samples and Quality Assurance</h3>
+          <p>For many products, we can produce a sample before full production and send photos for approval. Where it makes sense, we can also send a physical sample.</p>
+          <p>We will always advise what is most useful for your project.</p>
+        </div>
+      </div>
+
+      <div class="cta-center">
+        <ContactFormPopup client:visible triggerType="button" triggerText="Let's Talk About Your Project" triggerClassName="about-cta" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Production You Can Trust -->
+  <section class="about-section">
+    <div class="container">
+      <div class="two-col two-col-reverse">
+        <div class="col-text">
+          <h2>Production You Can Trust</h2>
+          <p>We work mainly with carefully selected European production partners. We have built long-term relationships with many of them, ensuring consistent quality and reliable production processes.</p>
+          <p>Producing in Europe gives us strong control over quality, timing, and communication — resulting in a predictable process with no surprises.</p>
+          <p>We also reduce transport distances and CO2 emissions and offer products made from recycled yarns and fabrics.</p>
+          <p>Typical production time is <strong>3 to 4 weeks</strong>, with faster options available. We only accept orders with deadlines when we are confident we can deliver on time.</p>
+          <div class="highlight-box">
+            <p><strong>Example:</strong> We delivered 1,400 custom scarves in one week for Maidstone Grammar School.</p>
+          </div>
+          <p>If something goes wrong, we take responsibility and resolve it properly, including reproducing the order if necessary.</p>
+        </div>
+        <div class="col-image">
+          <img src="/images/about-fans.png" alt="Sports fans with Hercules custom merchandise" loading="lazy" width="550" height="400" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Custom Sports Merchandise Range -->
+  <section class="about-section about-section-alt">
+    <div class="container">
+      <h2 class="section-title">Our Custom Sports Merchandise Range</h2>
+
+      <div class="range-grid">
+        <div class="range-card">
+          <h3>Custom Teamwear and Sports Kits</h3>
+          <p>We produce custom football kits, rugby kits, running shirts, and basketball kits.</p>
+          <div class="range-links">
+            <a href="/collections/custom-football-shirts">Custom Football Kits</a>
+            <a href="/collections/sportswear">Custom Sports Kits</a>
           </div>
         </div>
-        <div class="col-image">
-          <img src="/images/about-hercules-hero.png" alt="Hercules Merchandise products" loading="lazy" width="550" height="500" />
+
+        <div class="range-card">
+          <h3>Custom Football Scarves and Fan Merchandise</h3>
+          <p>Custom football scarves remain one of our most popular products.</p>
+          <div class="range-links">
+            <a href="/collections/custom-scarves">Custom Scarves</a>
+          </div>
+        </div>
+
+        <div class="range-card">
+          <h3>Full Merchandise Collections</h3>
+          <p>We also offer custom pennants, beanies, slides, towels, and bags.</p>
+          <div class="range-links">
+            <a href="/collections/beanies">Beanies</a>
+            <a href="/collections/slides">Slides</a>
+            <a href="/collections/towels">Towels</a>
+            <a href="/collections/bags">Bags</a>
+          </div>
+        </div>
+      </div>
+
+      <p class="range-note">Most products start from around 50 pieces. Custom sportswear can start from 5 units.</p>
+
+      <div class="cta-center">
+        <a href="/collections" class="explore-cta">Explore Our Products</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How We Work -->
+  <section class="about-section">
+    <div class="container">
+      <h2 class="section-title">How We Work</h2>
+      <p class="section-intro">You tell us what you need, we create your design, and nothing goes into production without your approval. We keep you informed throughout the process.</p>
+
+      <div class="steps-grid">
+        <div class="step">
+          <span class="step-number">1</span>
+          <p>You contact us with your idea</p>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <p>We create your design for free</p>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <p>You approve before production</p>
+        </div>
+        <div class="step">
+          <span class="step-number">4</span>
+          <p>We deliver on time</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Section 2: Philosophy (Image Left + Text Right) -->
+  <!-- A Reliable Team + Final CTA -->
+  <section class="about-section about-section-alt">
+    <div class="container">
+      <h2 class="section-title">Let's Create Your Merchandise</h2>
+      <p class="section-intro">We focus on being easy, responsive, and reliable. Everyone on the team works with clarity, speed, and attention to detail.</p>
+      <p class="section-intro">If you're looking for a reliable partner for custom sports merchandise, we'd be happy to help.</p>
+      <div class="cta-center">
+        <ContactFormPopup client:visible triggerType="button" triggerText="Let's Talk About Your Project" triggerClassName="about-cta" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
   <section class="about-section">
     <div class="container">
-      <div class="two-col">
-        <div class="col-image">
-          <img src="/images/about-fans.png" alt="Sports fans with Hercules merchandise" loading="lazy" width="550" height="400" />
-        </div>
-        <div class="col-text">
-          <p>We would like to offer you the opportunity to quickly and easily order both fan merchandise (the derivative products) and sports equipment. We provide beautiful designs and a simple and clear ordering process. Everything should go smoothly from the very first order. We hope to become your one-stop-shop for all sports-related items.</p>
-          <p>At Hercules Merchandise, we opt for a very targeted offering, with the most popular items for sports club or events. Everything is custom made, with your own design and logo. Thanks to our largely European production, we can deliver quickly and in small quantities. Take a quick look at our range and choose the most suitable items.</p>
-        </div>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>What is the minimum order quantity?</summary>
+          <p>Most products start from around 50 pieces, while sportswear can start from 5 units.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>How long does production take?</summary>
+          <p>Typically 3 to 4 weeks, with faster options available.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do you offer free designs?</summary>
+          <p>Yes, completely free with no obligation. We include up to five revision rounds to make sure everything looks exactly right.</p>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can I see a sample?</summary>
+          <p>In many cases, yes — depending on product and quantities. We'll always advise what's most useful for your project.</p>
+        </details>
       </div>
     </div>
   </section>
 
   <!-- They Trust Us -->
   <TrustLogos />
+
+  <!-- FAQ Schema -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is the minimum order quantity?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Most products start from around 50 pieces, while sportswear can start from 5 units."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How long does production take?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Typically 3 to 4 weeks, with faster options available."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you offer free designs?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, completely free with no obligation. We include up to five revision rounds to make sure everything looks exactly right."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I see a sample?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "In many cases, yes — depending on product and quantities. We'll always advise what's most useful for your project."
+        }
+      }
+    ]
+  })} />
 </BaseLayout>
 
 <style>
@@ -88,7 +303,7 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     right: 0;
     bottom: 0;
     background: linear-gradient(286deg, rgba(0, 0, 0, 0) 0%, rgb(0, 0, 0) 100%);
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
   .hero-container {
@@ -100,46 +315,51 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
   }
 
   .hero-text {
-    max-width: 550px;
+    max-width: 650px;
   }
 
   h1 {
     font-family: 'Jost', sans-serif;
-    font-size: 60px;
+    font-size: 52px;
     font-weight: 600;
     color: #FFFFFF;
     text-transform: uppercase;
-    line-height: 60px;
-    margin: 0 0 5px;
+    line-height: 1.1;
+    margin: 0 0 10px;
   }
 
   .hero-subtitle {
     font-family: 'Jost', sans-serif;
-    font-size: 45px;
-    font-weight: 300;
-    color: #FFFFFF;
-    text-transform: uppercase;
-    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 400;
+    color: #10C99E;
+    margin: 0 0 25px;
   }
 
-  .hero-text p {
+  .hero-text > p {
     font-family: 'Roboto', sans-serif;
-    font-size: 18px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #FFFFFF;
+    margin: 0 0 12px;
+  }
+
+  .hero-questions {
+    margin: 15px 0;
+    padding-left: 15px;
+    border-left: 3px solid #10C99E;
+  }
+
+  .hero-questions p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 6px;
     line-height: 1.5;
-    color: #FFFFFF;
-    margin: 0 0 15px;
   }
 
-  .hero-highlight {
-    font-family: 'Jost', sans-serif;
-    font-size: 25px;
-    font-weight: 300;
-    text-transform: uppercase;
-    color: #FFFFFF;
-    margin-top: 20px;
-  }
-
-  /* About Sections */
+  /* Shared Section Styles */
   .container {
     max-width: 1280px;
     margin: 0 auto;
@@ -155,6 +375,27 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     background: #FAFAFA;
   }
 
+  .section-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 35px;
+    font-weight: 600;
+    color: #253461;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0 0 15px;
+  }
+
+  .section-intro {
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    text-align: center;
+    max-width: 750px;
+    margin: 0 auto 10px;
+  }
+
+  /* Two Column Layout */
   .two-col {
     display: flex;
     align-items: center;
@@ -190,7 +431,6 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     margin: 0 0 20px;
   }
 
-
   .col-text p {
     font-family: 'Roboto', sans-serif;
     font-size: 16px;
@@ -203,8 +443,82 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     color: #253461;
   }
 
-  .cta-wrapper {
-    margin-top: 25px;
+  .col-text a {
+    color: #469ADC;
+    text-decoration: underline;
+  }
+
+  .col-text a:hover {
+    color: #253461;
+  }
+
+  /* Highlight Box */
+  .highlight-box {
+    background: #f0fdf4;
+    border-left: 4px solid #10C99E;
+    padding: 15px 20px;
+    border-radius: 0 10px 10px 0;
+    margin: 20px 0;
+  }
+
+  .highlight-box p {
+    margin: 0;
+    color: #253461;
+  }
+
+  /* Features Grid */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin: 40px 0;
+  }
+
+  .feature-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .feature-icon {
+    margin-bottom: 15px;
+  }
+
+  .feature-card h3 {
+    font-family: 'Jost', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #253461;
+    margin: 0 0 12px;
+  }
+
+  .feature-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #5F5F5F;
+    margin: 0 0 10px;
+  }
+
+  .feature-card p:last-child {
+    margin-bottom: 0;
+  }
+
+  .feature-card strong {
+    color: #253461;
+  }
+
+  /* CTA Center */
+  .cta-center {
+    text-align: center;
+    margin-top: 35px;
   }
 
   .about-cta :global(.contact-trigger-button) {
@@ -228,10 +542,190 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     color: #10C99E;
   }
 
-  /* Mobile */
+  /* Product Range Grid */
+  .range-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin: 40px 0 20px;
+  }
+
+  .range-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .range-card h3 {
+    font-family: 'Jost', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #253461;
+    margin: 0 0 10px;
+  }
+
+  .range-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #5F5F5F;
+    margin: 0 0 15px;
+  }
+
+  .range-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .range-links a {
+    display: inline-block;
+    padding: 8px 18px;
+    font-family: 'Jost', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #253461;
+    border: 1px solid #253461;
+    border-radius: 50px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .range-links a:hover {
+    background: #253461;
+    color: #FFFFFF;
+  }
+
+  .range-note {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    color: #5F5F5F;
+    text-align: center;
+    margin: 0 0 10px;
+  }
+
+  .explore-cta {
+    display: inline-block;
+    padding: 15px 40px;
+    font-family: 'Jost', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    background-color: #253461;
+    border: 1px solid #253461;
+    border-radius: 50px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .explore-cta:hover {
+    background-color: transparent;
+    color: #253461;
+  }
+
+  /* Steps Grid */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px;
+    margin-top: 40px;
+  }
+
+  .step {
+    text-align: center;
+    padding: 25px 15px;
+  }
+
+  .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #10C99E;
+    color: #FFFFFF;
+    font-family: 'Jost', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 15px;
+  }
+
+  .step p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #5F5F5F;
+    margin: 0;
+  }
+
+  /* FAQ Section */
+  .faq-list {
+    max-width: 800px;
+    margin: 30px auto 0;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid #E8E8E8;
+  }
+
+  .faq-item summary {
+    font-family: 'Jost', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: #253461;
+    padding: 20px 0;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary::after {
+    content: '+';
+    font-size: 24px;
+    font-weight: 300;
+    color: #10C99E;
+    transition: transform 0.3s ease;
+  }
+
+  .faq-item[open] summary::after {
+    content: '−';
+  }
+
+  .faq-item p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    padding: 0 0 20px;
+    margin: 0;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 1024px) {
+    .features-grid,
+    .range-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .steps-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
   @media (max-width: 768px) {
     .hero-section {
-      min-height: 300px;
+      min-height: auto;
     }
 
     .hero-container {
@@ -239,25 +733,27 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
     }
 
     h1 {
-      font-size: 36px;
-      line-height: 36px;
+      font-size: 32px;
     }
 
     .hero-subtitle {
-      font-size: 28px;
-    }
-
-    .hero-highlight {
       font-size: 18px;
     }
 
+    .hero-text > p {
+      font-size: 15px;
+    }
 
     .container {
       padding: 0 20px;
     }
 
     .about-section {
-      padding: 40px 0;
+      padding: 45px 0;
+    }
+
+    .section-title {
+      font-size: 24px;
     }
 
     .two-col,
@@ -275,6 +771,19 @@ const pageDescription = 'For over 10 years, Hercules Merchandising has been comm
 
     .col-image img {
       border-radius: 10px;
+    }
+
+    .steps-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .step {
+      padding: 15px 10px;
+    }
+
+    .faq-item summary {
+      font-size: 16px;
     }
   }
 </style>
