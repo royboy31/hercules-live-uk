@@ -274,6 +274,11 @@ export default {
       return Response.redirect(new URL('/contact-us/', url.origin).toString(), 301);
     }
 
+    // Old product slug redirects
+    if (pathname === '/products/custom-football-shirts' || pathname === '/products/custom-football-shirts/') {
+      return Response.redirect(new URL('/products/custom-football-kits/', url.origin).toString(), 301);
+    }
+
     // German page redirects
     if (pathname === '/warenkorb' || pathname === '/warenkorb/') {
       return Response.redirect(new URL('/cart/', url.origin).toString(), 301);

@@ -150,7 +150,7 @@ export const PRODUCT_MAPPINGS: Record<string, Record<Locale, string>> = {
 
   // Sports Jerseys
   'personalisiertes-handball-trikot': { de: 'personalisiertes-handball-trikot', en: 'custom-handball-shirt', fr: 'maillot-de-handball-personnalise' },
-  'personalisiertes-fussballtrikot': { de: 'personalisiertes-fussballtrikot', en: 'custom-football-shirts', fr: 'maillot-de-football-personnalise' },
+  'personalisiertes-fussballtrikot': { de: 'personalisiertes-fussballtrikot', en: 'custom-football-kits', fr: 'maillot-de-football-personnalise' },
   'personalisiertes-retro-fussballtrikot': { de: 'personalisiertes-retro-fussballtrikot', en: 'custom-retro-football-shirt', fr: 'maillot-de-football-vintage-retro-personnalise' },
   'personalisiertes-feldhockey-trikot': { de: 'personalisiertes-feldhockey-trikot', en: 'custom-field-hockey-shirt', fr: 'maillot-de-hockey-sur-gazon-personnalise' },
   'personalisiertes-volleyball-trikot': { de: 'personalisiertes-volleyball-trikot', en: 'custom-volleyball-shirt', fr: 'maillot-de-volley-ball-personnalise' },
