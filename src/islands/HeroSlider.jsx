@@ -7,7 +7,7 @@ const slides = [
     title: 'Custom Football Shirt',
     description: 'Personalised football shirts for your club',
     cta: 'Discover Now',
-    link: '/products/custom-football-shirts',
+    link: '/products/custom-football-kits',
     backgroundColor: '#253461',
   },
   {
