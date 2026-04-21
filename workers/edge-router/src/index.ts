@@ -310,9 +310,12 @@ export default {
       return Response.redirect(new URL('/contact-us/', url.origin).toString(), 301);
     }
 
-    // Old product slug redirects
+    // Old product/collection slug redirects
     if (pathname === '/products/custom-football-shirts' || pathname === '/products/custom-football-shirts/') {
       return Response.redirect(new URL('/products/custom-football-kits/', url.origin).toString(), 301);
+    }
+    if (pathname === '/collections/custom-football-pennants' || pathname === '/collections/custom-football-pennants/') {
+      return Response.redirect(new URL('/collections/custom-pennants/', url.origin).toString(), 301);
     }
 
     // German page redirects

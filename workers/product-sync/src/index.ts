@@ -263,9 +263,12 @@ class WooCommerceClient {
     return `Basic ${credentials}`;
   }
 
-  async fetchProducts(page: number = 1, perPage: number = 100): Promise<WCProduct[]> {
+  async fetchProducts(page: number = 1, perPage: number = 100, modifiedAfter?: string): Promise<WCProduct[]> {
     // Only fetch published products (exclude drafts, private, pending, trash)
-    const url = `${this.baseUrl}/wp-json/wc/v3/products?page=${page}&per_page=${perPage}&status=publish`;
+    let url = `${this.baseUrl}/wp-json/wc/v3/products?page=${page}&per_page=${perPage}&status=publish`;
+    if (modifiedAfter) {
+      url += `&modified_after=${encodeURIComponent(modifiedAfter)}`;
+    }
 
     const response = await fetch(url, {
       headers: {
@@ -281,13 +284,13 @@ class WooCommerceClient {
     return response.json();
   }
 
-  async fetchAllProducts(): Promise<WCProduct[]> {
+  async fetchAllProducts(modifiedAfter?: string): Promise<WCProduct[]> {
     const allProducts: WCProduct[] = [];
     let page = 1;
     let hasMore = true;
 
     while (hasMore) {
-      const products = await this.fetchProducts(page, 100);
+      const products = await this.fetchProducts(page, 100, modifiedAfter);
       allProducts.push(...products);
 
       if (products.length < 100) {
@@ -768,7 +771,9 @@ const MAX_GALLERY_IMAGES = 5;
 
 // Main sync function with batching support
 // forceImageRefresh: if true, re-download all images even if already cached (for upgrading image sizes)
-async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: boolean = false, forceIndex: boolean = false): Promise<{ synced: number; errors: string[]; hasMore: boolean; nextOffset: number }> {
+// prefetchedProducts: if provided, skip fetching and use these products (avoids re-fetching on every batch)
+// modifiedAfter: if set, only fetch products modified after this ISO timestamp (delta sync)
+async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: boolean = false, forceIndex: boolean = false, prefetchedProducts?: WCProduct[], modifiedAfter?: string): Promise<{ synced: number; errors: string[]; hasMore: boolean; nextOffset: number }> {
   const client = new WooCommerceClient(
     env.WC_STORE_URL,
     env.WC_CONSUMER_KEY,
@@ -779,10 +784,16 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
   let synced = 0;
 
   try {
-    // Fetch all products (first request)
-    console.log('Fetching all products...');
-    const allProducts = await client.fetchAllProducts();
-    console.log(`Found ${allProducts.length} products total, syncing from offset ${offset}`);
+    // Use pre-fetched products if available, otherwise fetch
+    let allProducts: WCProduct[];
+    if (prefetchedProducts) {
+      allProducts = prefetchedProducts;
+      console.log(`Using pre-fetched ${allProducts.length} products, syncing from offset ${offset}`);
+    } else {
+      console.log(modifiedAfter ? `Fetching products modified after ${modifiedAfter}...` : 'Fetching all products...');
+      allProducts = await client.fetchAllProducts(modifiedAfter);
+      console.log(`Found ${allProducts.length} products${modifiedAfter ? ' (modified)' : ''}, syncing from offset ${offset}`);
+    }
 
     // Fetch categories only on first batch
     if (offset === 0) {
@@ -874,48 +885,61 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
       }
     }
 
-    // Update product index with full list on first batch.
-    // Two guards protect the existing index from bad WooCommerce responses:
-    //   1. Zero guard  — empty response (API error, maintenance mode) must never write [].
-    //   2. Threshold guard — partial response (plugin conflict, DB timeout returning fewer
-    //      pages than expected) must not silently drop products from the index.
-    //      Threshold: new count must be >= 80% of existing count, OR existing index is empty
-    //      (first-ever sync). Pass ?force_index=true to the /sync endpoint to bypass if a
-    //      large legitimate deletion has happened.
+    // Update product index on first batch
     if (offset === 0) {
-      const existingIndexStr = await env.PRODUCTS_KV.get('product:index');
-      const existingCount = existingIndexStr ? JSON.parse(existingIndexStr).length : 0;
-      const threshold = Math.floor(existingCount * 0.8);
-      // forceIndex passed in from caller (e.g. /sync?force_index=true) to override threshold
+      const toIndexEntry = (p: WCProduct) => {
+        const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
+        const madeInEurope = getMeta('made_in_europe');
+        const greenProduct = getMeta('green_product');
+        const madeInUk = getMeta('made_in_uk');
 
-      if (allProducts.length === 0) {
-        console.error(`syncAllProducts: WooCommerce returned 0 products — skipping product:index write (existing: ${existingCount})`);
-      } else if (existingCount > 0 && allProducts.length < threshold && !forceIndex) {
-        console.error(`syncAllProducts: WooCommerce returned ${allProducts.length} products but existing index has ${existingCount} (threshold: ${threshold}) — skipping product:index write. Add ?force_index=true to /sync to override.`);
+        return {
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          featured: p.featured,
+          categories: p.categories.map(c => c.slug),
+          menu_order: p.menu_order || 0,
+          made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
+          green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
+          made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
+          missive_only: p.missive_only || getMeta('_missive_only') === 'yes',
+          date_modified: p.date_modified || new Date().toISOString(),
+        };
+      };
+
+      const isDeltaSync = !!prefetchedProducts && !!modifiedAfter;
+
+      if (isDeltaSync) {
+        // Delta sync: merge updated products into existing index
+        if (allProducts.length === 0) {
+          console.log('Delta sync: 0 modified products — index unchanged');
+        } else {
+          const existingIndexStr = await env.PRODUCTS_KV.get('product:index');
+          const existingIndex: any[] = existingIndexStr ? JSON.parse(existingIndexStr) : [];
+          const updatedEntries = new Map(allProducts.map(p => [p.id, toIndexEntry(p)]));
+
+          // Update existing entries and keep unchanged ones
+          const mergedIndex = existingIndex.map((entry: any) =>
+            updatedEntries.has(entry.id) ? updatedEntries.get(entry.id) : entry
+          );
+          // Add any new products not already in the index
+          for (const [id, entry] of updatedEntries) {
+            if (!existingIndex.some((e: any) => e.id === id)) {
+              mergedIndex.push(entry);
+            }
+          }
+
+          await env.PRODUCTS_KV.put('product:index', JSON.stringify(mergedIndex));
+          console.log(`Delta index merge: ${updatedEntries.size} updated/added, ${mergedIndex.length} total`);
+        }
       } else {
-        const productIndex = allProducts.map(p => {
-          // Extract badge data from WooCommerce meta_data
-          const getMeta = (key: string) => p.meta_data?.find(m => m.key === key)?.value;
-          const madeInEurope = getMeta('made_in_europe');
-          const greenProduct = getMeta('green_product');
-          const madeInUk = getMeta('made_in_uk');
-
-          return {
-            id: p.id,
-            name: p.name,
-            slug: p.slug,
-            featured: p.featured,
-            categories: p.categories.map(c => c.slug),
-            menu_order: p.menu_order || 0,
-            made_in_europe: madeInEurope === '1' || madeInEurope === 1 || madeInEurope === true,
-            green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
-            made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
-            missive_only: p.missive_only || getMeta('_missive_only') === 'yes',
-          };
-        });
-        await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
-        if (existingCount > 0 && forceIndex) {
-          console.log(`syncAllProducts: force_index=true — wrote product:index with ${productIndex.length} products (was ${existingCount})`);
+        // Full sync: replace entire index
+        if (allProducts.length === 0) {
+          console.error('Full sync: WooCommerce returned 0 products — skipping index write');
+        } else {
+          const productIndex = allProducts.map(toIndexEntry);
+          await env.PRODUCTS_KV.put('product:index', JSON.stringify(productIndex));
         }
       }
     }
@@ -1092,6 +1116,7 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
       made_in_europe: syncedProduct.made_in_europe || false,
       green_product: syncedProduct.green_product || false,
       made_in_uk: syncedProduct.made_in_uk || false,
+      date_modified: product.date_modified || new Date().toISOString(),
     };
 
     if (existingIndex >= 0) {
@@ -1373,6 +1398,7 @@ async function syncAllPosts(env: Env): Promise<{ synced: number; errors: string[
           title: syncedPost.title,
           slug: post.slug,
           date: syncedPost.date,
+          modified: syncedPost.modified || syncedPost.date,
           excerpt: syncedPost.excerpt.substring(0, 200) + (syncedPost.excerpt.length > 200 ? '...' : ''),
           featuredImage: syncedPost.localFeaturedImage,
         });
@@ -1447,6 +1473,7 @@ async function syncSinglePost(env: Env, postId: number): Promise<SyncedPost | nu
         title: syncedPost.title,
         slug: post.slug,
         date: syncedPost.date,
+        modified: syncedPost.modified || syncedPost.date,
         excerpt: syncedPost.excerpt.substring(0, 200) + (syncedPost.excerpt.length > 200 ? '...' : ''),
         featuredImage: syncedPost.localFeaturedImage,
       };
@@ -2373,6 +2400,7 @@ export default {
               'Content-Type': 'application/json',
               'User-Agent': 'Hercules-Product-Sync-Worker/1.0',
             },
+            cf: { cacheTtl: 0 },
           });
 
           if (!response.ok) {
@@ -2588,11 +2616,13 @@ export default {
     if (url.pathname === '/status') {
       const lastSync = await env.PRODUCTS_KV.get('last_sync');
       const lastPostSync = await env.PRODUCTS_KV.get('last_post_sync');
+      const lastDeltaSync = await env.PRODUCTS_KV.get('last_delta_sync');
       const lastRebuild = await env.PRODUCTS_KV.get('last_rebuild');
       const hasGithubToken = !!env.GITHUB_TOKEN;
       return new Response(JSON.stringify({
         last_sync: lastSync,
         last_post_sync: lastPostSync,
+        last_delta_sync: lastDeltaSync,
         last_rebuild: lastRebuild,
         last_rebuild_date: lastRebuild ? new Date(parseInt(lastRebuild)).toISOString() : null,
         github_token_configured: hasGithubToken,
@@ -2959,7 +2989,10 @@ export default {
 
   // Scheduled (cron) handler - runs multiple batches
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
-    console.log('Starting scheduled sync...');
+    // Read last successful sync timestamp for delta filtering
+    const lastSyncAt = await env.PRODUCTS_KV.get('last_delta_sync');
+    const syncStartedAt = new Date().toISOString();
+    console.log(`Starting delta sync (modified after: ${lastSyncAt ?? 'never — full sync'})...`);
 
     // Sync categories first (smaller, no batching needed)
     console.log('Syncing categories...');
@@ -2971,14 +3004,20 @@ export default {
     const postResult = await syncAllPosts(env);
     console.log(`Posts synced: ${postResult.synced}, errors: ${postResult.errors.length}`);
 
-    // Sync products in batches
+    // Fetch products ONCE (delta or full), then pass pre-fetched list to avoid re-fetching per batch
     console.log('Syncing products...');
+    const client = new WooCommerceClient(env.WC_STORE_URL, env.WC_CONSUMER_KEY, env.WC_CONSUMER_SECRET);
+    console.log(lastSyncAt ? `Fetching products modified after ${lastSyncAt}...` : 'Fetching all products (first run)...');
+    const allProducts = await client.fetchAllProducts(lastSyncAt ?? undefined);
+    console.log(`Found ${allProducts.length} products to sync`);
+
     let offset = 0;
     let hasMore = true;
     let totalSynced = 0;
+    let consecutiveEmpty = 0;
 
     while (hasMore) {
-      const result = await syncAllProducts(env, offset);
+      const result = await syncAllProducts(env, offset, false, allProducts, lastSyncAt ?? undefined);
       totalSynced += result.synced;
       hasMore = result.hasMore;
       offset = result.nextOffset;
@@ -2986,11 +3025,26 @@ export default {
       if (result.errors.length > 0) {
         console.log(`Batch had ${result.errors.length} errors`);
       }
+
+      // Stall protection: stop if 3 consecutive batches produce nothing
+      if (result.synced === 0) {
+        consecutiveEmpty++;
+        if (consecutiveEmpty >= 3) {
+          console.log('Stopping sync: 3 consecutive batches with 0 products synced');
+          hasMore = false;
+        }
+      } else {
+        consecutiveEmpty = 0;
+      }
     }
 
-    console.log(`Scheduled sync complete. Products: ${totalSynced}, Categories: ${categoryResult.synced}, Posts: ${postResult.synced}`);
+    console.log(`Delta sync complete. Products: ${totalSynced}, Categories: ${categoryResult.synced}, Posts: ${postResult.synced}`);
 
-    // Trigger site rebuild after full sync (force rebuild, ignore debounce for scheduled sync)
+    // Store the timestamp we started the sync at (not 'now' at end, to avoid missing products
+    // that were modified while the sync was running)
+    await env.PRODUCTS_KV.put('last_delta_sync', syncStartedAt);
+
+    // Trigger site rebuild after sync (force rebuild, ignore debounce for scheduled sync)
     if (totalSynced > 0 || categoryResult.synced > 0 || postResult.synced > 0) {
       // Clear the debounce timestamp to force a rebuild after scheduled sync
       await env.PRODUCTS_KV.delete('last_rebuild');
