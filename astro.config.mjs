@@ -7,7 +7,7 @@ import critters from 'astro-critters';
 import sitemap from '@astrojs/sitemap';
 
 // Fetch product and post dates at build time for sitemap lastmod
-const WORKER_URL = 'https://hercules-product-sync-uk.gilles-86d.workers.dev';
+const WORKER_URL = 'https://hercules-product-sync-uk-production.gilles-86d.workers.dev';
 const buildDate = new Date().toISOString();
 
 /** @type {Map<string, string>} slug → ISO date */
