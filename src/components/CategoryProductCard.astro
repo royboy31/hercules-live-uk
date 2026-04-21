@@ -109,7 +109,7 @@ const cardFeatures = product.card_features || [];
     />
   </div>
 
-  <a href={`/products/${product.slug}`} class="woocommerce-LoopProduct-link">
+  <a href={`/products/${product.slug}/`} class="woocommerce-LoopProduct-link">
     <!-- Badges - positioned top-left like WordPress -->
     {(isMadeInEurope || isSustainable || isMadeInUk) && (
       <div class="kd-archive-badges-wrapper">
@@ -198,7 +198,7 @@ const cardFeatures = product.card_features || [];
       </ul>
     )}
   </a>
-  <a href={`/products/${product.slug}`} class="button product_type_variable">
+  <a href={`/products/${product.slug}/`} class="button product_type_variable">
     Discover More
   </a>
 </li>
