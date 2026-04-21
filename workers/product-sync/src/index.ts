@@ -73,6 +73,8 @@ interface WCProduct {
   faq?: Array<{ question: string; answer: string }>;
   // Missive-only flag (exposed by hercules-missive-only plugin)
   missive_only?: boolean;
+  // WooCommerce product dates
+  date_modified?: string;
 }
 
 interface WCVariation {
