@@ -11,6 +11,10 @@ on:
         description: 'Specific site to check (uk, de, fr, or leave empty for all)'
         required: false
         default: ''
+      email_override:
+        description: 'Send report to this email only (leave empty for default recipients)'
+        required: false
+        default: ''
 
 jobs:
   health-check:
@@ -39,6 +43,7 @@ jobs:
           npx tsx src/index.ts --mode=daily $SITE_ARG
         env:
           BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          ALERT_EMAIL_OVERRIDE: ${{ github.event.inputs.email_override }}
 
       - name: Upload report artifact
         if: always()
