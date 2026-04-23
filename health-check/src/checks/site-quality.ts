@@ -1,5 +1,5 @@
 import type { CheckResult, SiteConfig } from '../types.js';
-import { result, fetchHtml, fetchJson, fetchWithTimeout, IpBlockedError } from './helpers.js';
+import { result, fetchHtml, fetchJson, fetchWithTimeout, fetchProductConfig, IpBlockedError } from './helpers.js';
 import { TIMEOUTS } from '../config/sites.js';
 
 // ── Category 7: Navigation & Menu ──
@@ -260,7 +260,7 @@ async function checkDesignLocale(site: SiteConfig): Promise<CheckResult[]> {
 
   // 9.11 Currency position
   try {
-    const config = await fetchJson(`${site.syncWorkerUrl}/product-config/${site.benchmarkProducts.attributeComplex.slug}`);
+    const config = await fetchProductConfig(site, site.benchmarkProducts.attributeComplex.slug);
     const pos = config.currency_position || '';
     const expectedPos = site.currency.position;
     const posMatch = pos === expectedPos || pos.startsWith(expectedPos.split('_')[0]);

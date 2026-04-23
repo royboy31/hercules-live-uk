@@ -1,5 +1,5 @@
 import type { CheckResult, SiteConfig } from '../types.js';
-import { result, fetchJson, fetchWithTimeout } from './helpers.js';
+import { result, fetchJson, fetchWithTimeout, fetchProductConfig } from './helpers.js';
 import { TIMEOUTS } from '../config/sites.js';
 
 const CAT = '2-SyncIntegrity';
@@ -69,14 +69,9 @@ export async function checkSyncIntegrity(site: SiteConfig): Promise<CheckResult[
   // 2.5 Product config API returns valid data (try sync worker first, fall back to WP)
   let configData: any = null;
   try {
-    configData = await fetchJson(`${site.syncWorkerUrl}/product-config/${imgSlug}`);
-  } catch {
-    // Sync worker doesn't have this route — fall back to WP REST API
-    try {
-      configData = await fetchJson(`${site.url}/wp-json/hercules/v1/product-config-by-slug/${imgSlug}`);
-    } catch (e2: any) {
-      results.push(result('2.5', CAT, s, 'Product config API valid', 'fail', `Error: ${e2.message}`));
-    }
+    configData = await fetchProductConfig(site, imgSlug);
+  } catch (e: any) {
+    results.push(result('2.5', CAT, s, 'Product config API valid', 'fail', `Error: ${e.message}`));
   }
   if (configData) {
     results.push(
