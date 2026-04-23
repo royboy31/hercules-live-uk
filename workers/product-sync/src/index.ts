@@ -2199,8 +2199,9 @@ export default {
     if (url.pathname === '/products') {
       const indexStr = await env.PRODUCTS_KV.get('product:index');
       const index = indexStr ? JSON.parse(indexStr) : [];
-      // Exclude missive-only products from website listings
-      const filtered = index.filter((p: any) => !p.missive_only);
+      // Exclude missive-only products from website listings (CRM passes include_missive=true)
+      const includeMissive = url.searchParams.get('include_missive') === 'true';
+      const filtered = includeMissive ? index : index.filter((p: any) => !p.missive_only);
       return new Response(JSON.stringify(filtered), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -2216,8 +2217,9 @@ export default {
       }
 
       const index = JSON.parse(indexStr);
-      // Exclude missive-only products from website builds
-      const filtered = index.filter((p: any) => !p.missive_only);
+      // Exclude missive-only products from website builds (CRM passes include_missive=true)
+      const includeMissive = url.searchParams.get('include_missive') === 'true';
+      const filtered = includeMissive ? index : index.filter((p: any) => !p.missive_only);
       const products = await Promise.all(
         filtered.map(async (p: any) => {
           const productStr = await env.PRODUCTS_KV.get(`product:${p.id}`);
@@ -2706,6 +2708,7 @@ export default {
       }
 
       const index = JSON.parse(indexStr);
+      const includeMissive = url.searchParams.get('include_missive') === 'true';
 
       // Score-based search: prioritize name matches over category matches
       // Also filter out test products and products without slugs
@@ -2714,6 +2717,8 @@ export default {
           // Filter out test products and products without slugs
           if (!p.slug || p.slug === '') return false;
           if (p.name.toLowerCase().includes('(copy)') || p.name.toLowerCase() === 'test') return false;
+          // Exclude missive-only from website search (CRM passes include_missive=true)
+          if (!includeMissive && p.missive_only) return false;
           return true;
         })
         .map((p: any) => {
