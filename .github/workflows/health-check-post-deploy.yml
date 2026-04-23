@@ -1,0 +1,56 @@
+name: Post-Deploy Health Check
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Cloudflare Pages"]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 'Site to check'
+        required: true
+        default: 'uk'
+        type: choice
+        options:
+          - uk
+          - de
+          - fr
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Only run if the deploy succeeded (or manual trigger)
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install health check dependencies
+        run: cd health-check && npm install
+
+      - name: Wait for deployment to propagate
+        run: sleep 30
+
+      - name: Run post-deploy health check
+        run: |
+          cd health-check
+          SITE="${{ github.event.inputs.site || 'uk' }}"
+          npx tsx src/index.ts --mode=deploy --site=$SITE
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-report-${{ github.run_id }}
+          path: health-check/reports/
+          retention-days: 30

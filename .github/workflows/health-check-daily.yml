@@ -1,0 +1,49 @@
+name: Daily Health Check (All Sites)
+
+on:
+  schedule:
+    # 2 AM CET (1 AM UTC in summer / 1 AM UTC in winter)
+    # Off-peak Belgium time
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      site:
+        description: 'Specific site to check (uk, de, fr, or leave empty for all)'
+        required: false
+        default: ''
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install health check dependencies
+        run: cd health-check && npm install
+
+      - name: Run health check
+        run: |
+          cd health-check
+          SITE_ARG=""
+          if [ -n "${{ github.event.inputs.site }}" ]; then
+            SITE_ARG="--site=${{ github.event.inputs.site }}"
+          fi
+          npx tsx src/index.ts --mode=daily $SITE_ARG
+        env:
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-check-report-${{ github.run_id }}
+          path: health-check/reports/
+          retention-days: 30
