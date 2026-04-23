@@ -2282,11 +2282,12 @@ export default {
       // Parse and add local image URLs
       const product = JSON.parse(productStr);
 
-      // Block missive-only products unless explicitly requested
+      // Block missive-only products from website (CRM passes include_missive=true)
       const includeMissive = url.searchParams.get('include_missive') === 'true';
       if (product.missive_only && !includeMissive) {
         return new Response('Product not found', { status: 404 });
       }
+
       if (product.slug) {
         product.localThumbnail = `${WORKER_URL}/image/${product.slug}`;
       }
