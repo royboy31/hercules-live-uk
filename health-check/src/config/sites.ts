@@ -252,7 +252,7 @@ export const SITES: Record<string, SiteConfig> = {
     thousandSeparator: ' ',
     cartTotalFormat: 'suffix_comma',
     taxPercent: 20,
-    isHeadless: false,
+    isHeadless: true,
     paths: {
       products: '/products',
       collections: '/collections',
@@ -261,8 +261,8 @@ export const SITES: Record<string, SiteConfig> = {
       quoteGenerator: '/generateur-de-devis',
       blogs: '/blog',
     },
-    phone: '+3233040585',
-    hasWhatsApp: true,
+    phone: '+33973030295',
+    hasWhatsApp: false,
     emailDomain: '.fr',
     logoPath: '/images/logo.png',
     gtmId: 'GTM-N7NM77N',
@@ -345,9 +345,9 @@ export const SITES: Record<string, SiteConfig> = {
       },
     },
     benchmarkCategories: [
-      { slug: 'echarpes-de-football', name: 'Écharpes de football', expectedProductCount: 14, tolerance: 3 },
-      { slug: 'football', name: 'Football', expectedProductCount: 20, tolerance: 5 },
-      { slug: 'equipements-personnalises', name: 'Équipements personnalisés', expectedProductCount: 18, tolerance: 3 },
+      { slug: 'echarpes-de-football', name: 'Écharpes de Football', expectedProductCount: 17, tolerance: 5 },
+      { slug: 'football', name: 'Football', expectedProductCount: 27, tolerance: 5 },
+      { slug: 'equipements-personnalises', name: 'Equipements Personnalisés', expectedProductCount: 20, tolerance: 5 },
     ],
   },
 };
