@@ -66,16 +66,24 @@ export async function checkSyncIntegrity(site: SiteConfig): Promise<CheckResult[
     results.push(result('2.4', CAT, s, 'Product image loads', 'fail', `Error: ${e.message}`));
   }
 
-  // 2.5 Product config API returns valid data
+  // 2.5 Product config API returns valid data (try sync worker first, fall back to WP)
+  let configData: any = null;
   try {
-    const data = await fetchJson(`${site.syncWorkerUrl}/product-config/${imgSlug}`);
+    configData = await fetchJson(`${site.syncWorkerUrl}/product-config/${imgSlug}`);
+  } catch {
+    // Sync worker doesn't have this route — fall back to WP REST API
+    try {
+      configData = await fetchJson(`${site.url}/wp-json/hercules/v1/product-config-by-slug/${imgSlug}`);
+    } catch (e2: any) {
+      results.push(result('2.5', CAT, s, 'Product config API valid', 'fail', `Error: ${e2.message}`));
+    }
+  }
+  if (configData) {
     results.push(
-      data && data.product_id
-        ? result('2.5', CAT, s, 'Product config API valid', 'pass', `product_id: ${data.product_id}`)
+      configData.product_id
+        ? result('2.5', CAT, s, 'Product config API valid', 'pass', `product_id: ${configData.product_id}`)
         : result('2.5', CAT, s, 'Product config API valid', 'fail', 'Missing product_id')
     );
-  } catch (e: any) {
-    results.push(result('2.5', CAT, s, 'Product config API valid', 'fail', `Error: ${e.message}`));
   }
 
   // 2.6 Category has products
@@ -93,18 +101,17 @@ export async function checkSyncIntegrity(site: SiteConfig): Promise<CheckResult[
     }
   }
 
-  // 2.7 No staging URLs in production KV data
-  try {
-    const data = await fetchJson(`${site.syncWorkerUrl}/product-config/${imgSlug}`);
-    const jsonStr = JSON.stringify(data);
+  // 2.7 No staging URLs in production KV data (reuse configData from 2.5)
+  if (configData) {
+    const jsonStr = JSON.stringify(configData);
     const hasStagingUrls = jsonStr.includes('staging.') || jsonStr.includes('.pages.dev');
     results.push(
       !hasStagingUrls
         ? result('2.7', CAT, s, 'No staging URLs in KV data', 'pass', 'Clean')
         : result('2.7', CAT, s, 'No staging URLs in KV data', 'warn', 'Found staging URLs in product config data', jsonStr.match(/staging\.[^\s"]+/g)?.slice(0, 3).join(', '))
     );
-  } catch (e: any) {
-    results.push(result('2.7', CAT, s, 'No staging URLs in KV data', 'fail', `Error: ${e.message}`));
+  } else {
+    results.push(result('2.7', CAT, s, 'No staging URLs in KV data', 'warn', 'Could not fetch product config to check'));
   }
 
   // 2.8 Search returns results

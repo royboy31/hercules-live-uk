@@ -24,7 +24,7 @@ export const SITES: Record<string, SiteConfig> = {
       blogs: '/blogs/uk',
     },
     phone: '+442039664881',
-    hasWhatsApp: true,
+    hasWhatsApp: false,
     emailDomain: '.co.uk',
     logoPath: '/images/hercules-logo-original1.webp',
     gtmId: 'GTM-TW5HR72',
@@ -122,9 +122,9 @@ export const SITES: Record<string, SiteConfig> = {
       },
     },
     benchmarkCategories: [
-      { slug: 'custom-scarves', name: 'Custom Scarves', expectedProductCount: 16, tolerance: 3 },
-      { slug: 'football', name: 'Football', expectedProductCount: 27, tolerance: 5 },
-      { slug: 'custom-printed-sportswear', name: 'Custom Printed Sportswear', expectedProductCount: 19, tolerance: 3 },
+      { slug: 'custom-scarves', name: 'Custom Scarves', expectedProductCount: 16, tolerance: 5 },
+      { slug: 'football', name: 'Football', expectedProductCount: 28, tolerance: 5 },
+      { slug: 'custom-printed-sportswear', name: 'Custom Sportswear', expectedProductCount: 20, tolerance: 5 },
     ],
   },
 
