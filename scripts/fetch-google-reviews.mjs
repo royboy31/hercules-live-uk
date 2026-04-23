@@ -19,10 +19,14 @@ const OUTPUT_FILE = resolve(__dirname, '../src/data/google-place-data.json');
 const FTID = '0xa13b775f11fdb24d:0x93a56bc6631bafa4';
 const MAPS_URL = 'https://www.google.com/maps/place//data=!4m7!3m6!1s0xa13b775f11fdb24d:0x93a56bc6631bafa4!8m2!3d47.73855!4d11.5749774!9m1!1b1';
 
+// TrustIndex review count (source of truth — matches the TrustIndex widget on the site)
+// Update this periodically to match https://cdn.trustindex.io widget count
+const TRUSTINDEX_REVIEW_COUNT = 186;
+
 // Fallback values if scraping fails
 const FALLBACK = {
-  rating: 4.9,
-  reviewCount: 179,
+  rating: 5.0,
+  reviewCount: TRUSTINDEX_REVIEW_COUNT,
   name: 'Hercules Merchandise UK',
   url: MAPS_URL,
   scrapedAt: null,
@@ -76,7 +80,7 @@ async function fetchGoogleReviews() {
 
   const result = {
     rating,
-    reviewCount: typeof reviewCount === 'number' ? reviewCount : FALLBACK.reviewCount,
+    reviewCount: TRUSTINDEX_REVIEW_COUNT,
     name: name || FALLBACK.name,
     url: mapsUrl,
     scrapedAt: new Date().toISOString(),

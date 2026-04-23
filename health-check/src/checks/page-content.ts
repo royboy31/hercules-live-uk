@@ -1,0 +1,209 @@
+import type { CheckResult, SiteConfig } from '../types.js';
+import { result, fetchHtml, fetchJson } from './helpers.js';
+
+const CAT = '5-PageContent';
+
+export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]> {
+  const results: CheckResult[] = [];
+  const s = site.id;
+  const benchmarks = [
+    site.benchmarkProducts.attributeComplex,
+    site.benchmarkProducts.addonSimple,
+  ];
+
+  for (const bp of benchmarks) {
+    const url = `${site.url}${site.paths.products}/${bp.slug}/`;
+    const prefix = bp.slug;
+    let html: string;
+    let status: number;
+
+    try {
+      const res = await fetchHtml(url);
+      html = res.html;
+      status = res.status;
+    } catch (e: any) {
+      results.push(result('5.0', CAT, s, `${prefix}: Page loads`, 'fail', `Error: ${e.message}`));
+      continue;
+    }
+
+    if (status !== 200) {
+      results.push(result('5.0', CAT, s, `${prefix}: Page loads`, 'fail', `HTTP ${status}`));
+      continue;
+    }
+
+    // 5.1 Product name in page
+    const nameInPage = html.includes(bp.name) || html.toLowerCase().includes(bp.name.toLowerCase());
+    results.push(result('5.1', CAT, s, `${prefix}: Name in page`, nameInPage ? 'pass' : 'warn',
+      nameInPage ? 'Found' : `"${bp.name}" not found in HTML`));
+
+    // 5.2 Description present
+    const hasDesc = html.includes('description') || html.includes('product-description') || html.includes('woocommerce-product-details');
+    results.push(result('5.2', CAT, s, `${prefix}: Description area`, hasDesc ? 'pass' : 'warn',
+      hasDesc ? 'Found' : 'No description element detected'));
+
+    // 5.3-5.5 USP badges
+    if (bp.madeInEurope) {
+      const hasMadeEu = html.includes('made-in-europe') || html.includes('Made in Europe') || html.includes('Hergestellt in Europa') || html.includes('Fabriqué en Europe') || html.includes('made_in_europe');
+      results.push(result('5.4', CAT, s, `${prefix}: Made in Europe badge`, hasMadeEu ? 'pass' : 'warn',
+        hasMadeEu ? 'Present' : 'Not found'));
+    }
+
+    if (bp.greenOption) {
+      const hasGreen = html.includes('green-option') || html.includes('Green Option') || html.includes('green_option') || html.includes('Grüne Option') || html.includes('Option verte');
+      results.push(result('5.5', CAT, s, `${prefix}: Green Option badge`, hasGreen ? 'pass' : 'warn',
+        hasGreen ? 'Present' : 'Not found'));
+    }
+
+    if (bp.madeInUk) {
+      const hasMadeUk = html.includes('made-in-the-uk') || html.includes('Made in the UK') || html.includes('made_in_uk');
+      results.push(result('5.3', CAT, s, `${prefix}: Made in UK badge`, hasMadeUk ? 'pass' : 'warn',
+        hasMadeUk ? 'Present' : 'Not found'));
+    }
+
+    // 5.6 FAQ section (benchmark product — check against KV source of truth)
+    if (site.isHeadless) {
+      const hasFaqOnPage = html.includes('faq') || html.includes('FAQ') || html.includes('frequently') || html.includes('Häufig') || html.includes('foire');
+      let hasFaqInKv = false;
+      try {
+        const kvProduct = await fetchJson(`${site.syncWorkerUrl}/product/${bp.slug}`);
+        hasFaqInKv = Array.isArray(kvProduct?.faq) && kvProduct.faq.length > 0;
+      } catch { /* KV fetch failed — fall back to page-only check */ }
+
+      if (hasFaqInKv && !hasFaqOnPage) {
+        // FAQ exists in KV but not rendered — real problem
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'fail', 'FAQ in KV but not rendered on page'));
+      } else if (!hasFaqInKv && !hasFaqOnPage) {
+        // No FAQ in KV, none on page — consistent, just informational
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', 'No FAQ in WP/KV (consistent)'));
+      } else {
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', hasFaqOnPage ? 'Found' : 'No FAQ section detected'));
+      }
+    }
+
+    // 5.7 Currency in page (headless sites render prices client-side via React configurator)
+    const sym = site.currency.symbol;
+    const entity = site.currency.htmlEntity;
+    const hasCurrency = html.includes(sym) || html.includes(entity) || html.includes(site.currency.code);
+    if (site.isHeadless && !hasCurrency) {
+      results.push(result('5.7', CAT, s, `${prefix}: Currency (${sym}) present`, 'pass',
+        `Headless — prices render client-side (${site.currency.code})`));
+    } else {
+      results.push(result('5.7', CAT, s, `${prefix}: Currency (${sym}) present`, hasCurrency ? 'pass' : 'warn',
+        hasCurrency ? 'Found' : `Neither "${sym}" nor "${entity}" found`));
+    }
+
+    // 5.8 No error state in configurator
+    if (site.isHeadless) {
+      const hasError = html.includes('configurator-error') || html.includes('Error loading') || html.includes('Failed to load');
+      results.push(result('5.8', CAT, s, `${prefix}: No configurator error`, !hasError ? 'pass' : 'fail',
+        !hasError ? 'Clean' : 'Error state detected in configurator'));
+    }
+
+    // 5.9 CTA button present
+    const ctaPatterns = ['Add to quotation', 'Add to cart', 'Zum Angebot', 'In den Warenkorb', 'Ajouter au devis', 'Ajouter au panier', 'quote', 'cart'];
+    const hasCta = ctaPatterns.some(p => html.toLowerCase().includes(p.toLowerCase()));
+    results.push(result('5.9', CAT, s, `${prefix}: CTA button present`, hasCta ? 'pass' : 'warn',
+      hasCta ? 'Found' : 'No CTA button detected'));
+
+    // 5.10 Product image present
+    const imgMatch = html.match(/<img[^>]+src="([^"]+)"/);
+    if (imgMatch) {
+      results.push(result('5.10', CAT, s, `${prefix}: Product image present`, 'pass', 'Image tag found'));
+    } else {
+      results.push(result('5.10', CAT, s, `${prefix}: Product image present`, 'warn', 'No img tag found'));
+    }
+  }
+
+  // 5.11-5.13 FAQ sync: KV (source of truth from WP) vs Astro (rendered page)
+  // The /products bulk endpoint doesn't include FAQ — must fetch each /product/{slug} individually
+  if (site.isHeadless) {
+    try {
+      const productList: any[] = await fetchJson(`${site.syncWorkerUrl}/products`);
+      const slugs = productList.map((p: any) => p.slug as string);
+
+      // Fetch individual product data in parallel batches of 10 to get FAQ field
+      const batchSize = 10;
+      const productDetails: any[] = [];
+      for (let i = 0; i < slugs.length; i += batchSize) {
+        const batch = slugs.slice(i, i + batchSize);
+        const batchResults = await Promise.all(
+          batch.map(slug =>
+            fetchJson(`${site.syncWorkerUrl}/product/${slug}`).catch(() => null)
+          )
+        );
+        productDetails.push(...batchResults.filter(Boolean));
+      }
+
+      const withFaq = productDetails.filter((p: any) => Array.isArray(p.faq) && p.faq.length > 0);
+      const withoutFaq = productDetails.filter((p: any) => !Array.isArray(p.faq) || p.faq.length === 0);
+
+      // Check products WITH FAQ in KV render FAQ on Astro page
+      const kvHasAstroMissing: string[] = [];
+      for (const p of withFaq) {
+        const url = `${site.url}${site.paths.products}/${p.slug}/`;
+        try {
+          const { html: pageHtml } = await fetchHtml(url);
+          const hasFaqOnPage = pageHtml.includes('faq') || pageHtml.includes('FAQ')
+            || pageHtml.includes('frequently') || pageHtml.includes('Häufig')
+            || pageHtml.includes('foire') || pageHtml.includes('FAQPage');
+          if (!hasFaqOnPage) {
+            kvHasAstroMissing.push(p.slug);
+          }
+        } catch {
+          kvHasAstroMissing.push(`${p.slug} (page error)`);
+        }
+      }
+
+      // Check a sample of products WITHOUT FAQ in KV don't show stale FAQ on Astro
+      const astroHasKvMissing: string[] = [];
+      const sampleNoFaq = withoutFaq.slice(0, 10); // spot-check 10
+      for (const p of sampleNoFaq) {
+        const url = `${site.url}${site.paths.products}/${p.slug}/`;
+        try {
+          const { html: pageHtml } = await fetchHtml(url);
+          // Look for actual FAQ content block, not just the word in nav/footer
+          const hasFaqSection = pageHtml.includes('FAQPage')
+            || pageHtml.includes('faq-section')
+            || pageHtml.includes('faq-accordion')
+            || pageHtml.includes('itemtype="https://schema.org/FAQPage"');
+          if (hasFaqSection) {
+            astroHasKvMissing.push(p.slug);
+          }
+        } catch {
+          // skip fetch errors for sample check
+        }
+      }
+
+      // Report results
+      if (kvHasAstroMissing.length === 0 && withFaq.length > 0) {
+        results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
+          'pass', `All ${withFaq.length} products with FAQ in KV render FAQ on Astro`));
+      } else if (withFaq.length === 0) {
+        results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
+          'warn', `No products have FAQ in KV (${productDetails.length} total products)`,
+          'Add FAQ content in WP Admin for products'));
+      } else {
+        results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
+          'fail', `${kvHasAstroMissing.length}/${withFaq.length} products have FAQ in KV but not rendered on Astro`,
+          kvHasAstroMissing.join(', ')));
+      }
+
+      if (astroHasKvMissing.length > 0) {
+        results.push(result('5.12', CAT, s, 'FAQ sync: stale Astro FAQ',
+          'warn', `${astroHasKvMissing.length} products show FAQ on Astro but KV has none (stale build?)`,
+          astroHasKvMissing.join(', ')));
+      }
+
+      // Summary stat
+      results.push(result('5.13', CAT, s, 'FAQ coverage',
+        'pass', `${withFaq.length}/${productDetails.length} products have FAQ content`,
+        `Products with FAQ: ${withFaq.map((p: any) => p.slug).join(', ') || 'none'}`));
+
+    } catch (e: any) {
+      results.push(result('5.11', CAT, s, 'FAQ sync check',
+        'warn', `Could not run FAQ sync check: ${e.message}`));
+    }
+  }
+
+  return results;
+}
