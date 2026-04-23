@@ -352,7 +352,9 @@ export const SITES: Record<string, SiteConfig> = {
   },
 };
 
-export const ALERT_EMAILS = ['roy@perelweb.studio', 'kamindudushmantha@gmail.com', 'gilles@hercules-merchandise.com'];
+export const ALERT_EMAILS = process.env.ALERT_EMAIL_OVERRIDE
+  ? [process.env.ALERT_EMAIL_OVERRIDE]
+  : ['roy@perelweb.studio', 'kamindudushmantha@gmail.com', 'gilles@hercules-merchandise.com'];
 export const DEPLOY_EMAILS = ['kamindudushmantha@gmail.com'];
 
 export const BREVO_API_KEY = process.env.BREVO_API_KEY || '';
