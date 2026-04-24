@@ -1048,6 +1048,7 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
   if (indexStr) {
     const index = JSON.parse(indexStr);
     const existingIndex = index.findIndex((p: any) => p.id === productId);
+    const getMeta = (key: string) => product.meta_data?.find(m => m.key === key)?.value;
     const newEntry = {
       id: product.id,
       name: product.name,
@@ -1058,6 +1059,7 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
       made_in_europe: syncedProduct.made_in_europe || false,
       green_product: syncedProduct.green_product || false,
       made_in_uk: syncedProduct.made_in_uk || false,
+      missive_only: product.missive_only || getMeta('_missive_only') === 'yes',
       date_modified: product.date_modified || new Date().toISOString(),
     };
 
@@ -1466,6 +1468,60 @@ async function deletePost(env: Env, postId: number): Promise<void> {
 
 // Debounce interval for site rebuilds (5 minutes)
 const REBUILD_DEBOUNCE_MS = 5 * 60 * 1000;
+
+// Verify KV product count matches WooCommerce before allowing a rebuild.
+// Returns { ok, kvCount, wpCount, reason } — ok=false means counts diverge too much.
+async function verifyProductCounts(env: Env): Promise<{
+  ok: boolean;
+  kvCount: number;
+  wpCount: number;
+  reason: string;
+}> {
+  try {
+    // KV count from product:index
+    const indexStr = await env.PRODUCTS_KV.get('product:index');
+    const kvCount = indexStr ? JSON.parse(indexStr).length : 0;
+
+    // WP count via lightweight request (per_page=1, read X-WP-Total header)
+    const wpRes = await fetch(
+      `${env.WC_STORE_URL}/wp-json/wc/v3/products?per_page=1&status=publish`,
+      {
+        headers: {
+          'Authorization': `Basic ${btoa(`${env.WC_CONSUMER_KEY}:${env.WC_CONSUMER_SECRET}`)}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!wpRes.ok) {
+      return { ok: false, kvCount, wpCount: -1, reason: `WP API error: ${wpRes.status}` };
+    }
+
+    const wpCount = parseInt(wpRes.headers.get('X-WP-Total') || '0', 10);
+
+    if (kvCount === 0) {
+      return { ok: false, kvCount, wpCount, reason: 'KV index is empty — refusing to rebuild' };
+    }
+
+    // Allow up to 5% drift or 3 products (whichever is larger) to handle
+    // timing differences between sync and count check
+    const tolerance = Math.max(3, Math.ceil(wpCount * 0.05));
+    const diff = Math.abs(kvCount - wpCount);
+
+    if (diff > tolerance) {
+      return {
+        ok: false,
+        kvCount,
+        wpCount,
+        reason: `Count mismatch: KV=${kvCount}, WP=${wpCount} (diff=${diff}, tolerance=${tolerance})`,
+      };
+    }
+
+    return { ok: true, kvCount, wpCount, reason: `Counts verified: KV=${kvCount}, WP=${wpCount}` };
+  } catch (error) {
+    return { ok: false, kvCount: -1, wpCount: -1, reason: `Verification error: ${error}` };
+  }
+}
 
 // Trigger GitHub Actions workflow to rebuild and deploy the site
 // Uses workflow_dispatch API to trigger the deploy.yml workflow
@@ -2499,6 +2555,23 @@ export default {
         return new Response('Unauthorized', { status: 401 });
       }
 
+      // Verify KV vs WP product counts before triggering a build
+      const skipVerify = url.searchParams.get('skip_verify') === 'true';
+      if (!skipVerify) {
+        const verification = await verifyProductCounts(env);
+        if (!verification.ok) {
+          return new Response(JSON.stringify({
+            triggered: false,
+            reason: `BLOCKED — ${verification.reason}`,
+            kvCount: verification.kvCount,
+            wpCount: verification.wpCount,
+          }), {
+            status: 409,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      }
+
       // Clear debounce first
       await env.PRODUCTS_KV.delete('last_rebuild');
 
@@ -2880,10 +2953,18 @@ export default {
 
     // Trigger site rebuild after sync (force rebuild, ignore debounce for scheduled sync)
     if (totalSynced > 0 || categoryResult.synced > 0 || postResult.synced > 0) {
-      // Clear the debounce timestamp to force a rebuild after scheduled sync
-      await env.PRODUCTS_KV.delete('last_rebuild');
-      const rebuildResult = await triggerSiteRebuild(env);
-      console.log(`Site rebuild: ${rebuildResult.reason}`);
+      // Verify KV vs WP product counts before triggering a build
+      const verification = await verifyProductCounts(env);
+      console.log(`Product count verification: ${verification.reason}`);
+
+      if (!verification.ok) {
+        console.error(`REBUILD BLOCKED — ${verification.reason}`);
+      } else {
+        // Clear the debounce timestamp to force a rebuild after scheduled sync
+        await env.PRODUCTS_KV.delete('last_rebuild');
+        const rebuildResult = await triggerSiteRebuild(env);
+        console.log(`Site rebuild: ${rebuildResult.reason}`);
+      }
     }
   },
 };
