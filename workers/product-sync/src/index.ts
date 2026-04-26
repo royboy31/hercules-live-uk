@@ -1585,60 +1585,6 @@ async function verifyProductCounts(env: Env): Promise<{
   }
 }
 
-// Verify KV product count matches WooCommerce before allowing a rebuild.
-// Returns { ok, kvCount, wpCount, reason } — ok=false means counts diverge too much.
-async function verifyProductCounts(env: Env): Promise<{
-  ok: boolean;
-  kvCount: number;
-  wpCount: number;
-  reason: string;
-}> {
-  try {
-    // KV count from product:index
-    const indexStr = await env.PRODUCTS_KV.get('product:index');
-    const kvCount = indexStr ? JSON.parse(indexStr).length : 0;
-
-    // WP count via lightweight request (per_page=1, read X-WP-Total header)
-    const wpRes = await fetch(
-      `${env.WC_STORE_URL}/wp-json/wc/v3/products?per_page=1&status=publish`,
-      {
-        headers: {
-          'Authorization': `Basic ${btoa(`${env.WC_CONSUMER_KEY}:${env.WC_CONSUMER_SECRET}`)}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!wpRes.ok) {
-      return { ok: false, kvCount, wpCount: -1, reason: `WP API error: ${wpRes.status}` };
-    }
-
-    const wpCount = parseInt(wpRes.headers.get('X-WP-Total') || '0', 10);
-
-    if (kvCount === 0) {
-      return { ok: false, kvCount, wpCount, reason: 'KV index is empty — refusing to rebuild' };
-    }
-
-    // Allow up to 5% drift or 3 products (whichever is larger) to handle
-    // timing differences between sync and count check
-    const tolerance = Math.max(3, Math.ceil(wpCount * 0.05));
-    const diff = Math.abs(kvCount - wpCount);
-
-    if (diff > tolerance) {
-      return {
-        ok: false,
-        kvCount,
-        wpCount,
-        reason: `Count mismatch: KV=${kvCount}, WP=${wpCount} (diff=${diff}, tolerance=${tolerance})`,
-      };
-    }
-
-    return { ok: true, kvCount, wpCount, reason: `Counts verified: KV=${kvCount}, WP=${wpCount}` };
-  } catch (error) {
-    return { ok: false, kvCount: -1, wpCount: -1, reason: `Verification error: ${error}` };
-  }
-}
-
 // Trigger GitHub Actions workflow to rebuild and deploy the site
 // Uses workflow_dispatch API to trigger the deploy.yml workflow
 // Prevents excessive rebuilds when multiple products are updated in quick succession
