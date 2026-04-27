@@ -35,17 +35,26 @@ export async function checkAvailability(site: SiteConfig): Promise<CheckResult[]
     results.push(result('1.2', CAT, s, 'Sync worker healthy', 'fail', `Error: ${e.message}`));
   }
 
-  // 1.3 Last sync < 24h
+  // 1.3 Last sync < 24h (use most recent of full sync, delta sync, or post sync)
   try {
     const data = await fetchJson(site.syncWorkerUrl + '/status');
-    const lastSync = new Date(data.last_sync || data.lastSync || '');
-    const hoursAgo = (Date.now() - lastSync.getTime()) / 3600000;
-    if (hoursAgo < 24) {
-      results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'pass', `${hoursAgo.toFixed(1)}h ago`));
-    } else if (hoursAgo < 48) {
-      results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'warn', `${hoursAgo.toFixed(1)}h ago — stale`));
+    const candidates = [
+      data.last_sync, data.lastSync,
+      data.last_delta_sync, data.lastDeltaSync,
+      data.last_post_sync, data.lastPostSync,
+    ].filter(Boolean).map((d: string) => new Date(d).getTime()).filter((t: number) => !isNaN(t));
+    const lastSyncTime = candidates.length > 0 ? Math.max(...candidates) : 0;
+    if (lastSyncTime === 0) {
+      results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'fail', 'No sync timestamp found'));
     } else {
-      results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'fail', `${hoursAgo.toFixed(1)}h ago — very stale`));
+      const hoursAgo = (Date.now() - lastSyncTime) / 3600000;
+      if (hoursAgo < 24) {
+        results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'pass', `${hoursAgo.toFixed(1)}h ago`));
+      } else if (hoursAgo < 48) {
+        results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'warn', `${hoursAgo.toFixed(1)}h ago — stale`));
+      } else {
+        results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'fail', `${hoursAgo.toFixed(1)}h ago — very stale`));
+      }
     }
   } catch (e: any) {
     results.push(result('1.3', CAT, s, 'Last sync < 24h ago', 'fail', `Error: ${e.message}`));
