@@ -226,6 +226,14 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
   const [addToCartLoading, setAddToCartLoading] = useState(false);
   const [addToCartError, setAddToCartError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState<'quote' | 'cart' | null>(null);
+  const [hasCartItems, setHasCartItems] = useState(false);
+
+  // Subscribe to cart changes to toggle quote button text
+  useEffect(() => {
+    const check = () => setHasCartItems(cartStore.get().count > 0);
+    check();
+    return cartStore.subscribe(() => check());
+  }, []);
 
   // Fetch product config on mount
   useEffect(() => {
@@ -1189,7 +1197,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
             onClick={() => handleAddToCart('quote')}
           >
             {addToCartLoading && <span className="kd-btn-spinner"></span>}
-            {addToCartLoading ? 'Processing...' : 'Create quote'}
+            {addToCartLoading ? 'Processing...' : hasCartItems ? 'Add to quote' : 'Create quote'}
           </button>
           <small>We will send you a PDF</small>
         </div>
