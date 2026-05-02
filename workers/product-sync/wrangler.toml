@@ -8,6 +8,11 @@ binding = "PRODUCTS_KV"
 id = "50743a0e269f4450b61bb690847534c4"
 
 # Scheduled triggers (cron jobs)
+# R2 bucket for client trust logos
+[[r2_buckets]]
+binding = "CLIENT_LOGOS_BUCKET"
+bucket_name = "hercules-uk-client-logos"
+
 [triggers]
 crons = ["0 3 * * *"]  # Run daily at 3 AM UTC
 
@@ -26,6 +31,10 @@ vars = { WC_STORE_URL = "https://staging.hercules-merchandise.co.uk" }
 [[env.production.kv_namespaces]]
 binding = "PRODUCTS_KV"
 id = "82f827d101734ce38ccc89629c7ae919"
+
+[[env.production.r2_buckets]]
+binding = "CLIENT_LOGOS_BUCKET"
+bucket_name = "hercules-uk-client-logos"
 
 [env.production.triggers]
 crons = ["0 3 * * *"]
