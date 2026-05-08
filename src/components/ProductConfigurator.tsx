@@ -132,7 +132,7 @@ function getAddonPriceAtTierQty(addon: AddonData, selectedValue: string | string
 
   for (const name of selectedNames) {
     // Skip "None" selection - it has no price
-    if (name === 'None') continue;
+    if (['none', 'keine', 'aucun'].includes(name.toLowerCase())) continue;
 
     const option = addon.options.find(o => o.name === name);
     if (!option || !option.price_table || option.price_table.length === 0) continue;
@@ -445,7 +445,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       if (!selected) continue;
       const selectedNames = Array.isArray(selected) ? selected : [selected];
       for (const name of selectedNames) {
-        if (name === 'None') continue;
+        if (['none', 'keine', 'aucun'].includes(name.toLowerCase())) continue;
         const option = addon.options.find(o => o.name === name);
         if (option && Array.isArray(option.price_table) && option.price_table.length > 0) {
           const firstQty = parseFloatSafe(option.price_table[0].qty);
@@ -920,16 +920,19 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {/* Multiple Choice (checkboxes) for addons like Zubehör - auto-advances on selection */}
                 {addon.display_type === 'multiple_choise' && Array.isArray(addon.options) && (() => {
                   const currentSelected = Array.isArray(selectedValue) ? selectedValue : (selectedValue ? [selectedValue] : []);
-                  const isNoneChecked = currentSelected.includes('None');
+                  // Detect the "none" option dynamically from DB (first option is typically None/Keine/Aucun)
+                  const noneOption = addon.options.find(o => ['none', 'keine', 'aucun'].includes(o.name.toLowerCase()));
+                  const noneName = noneOption ? noneOption.name : '';
+                  const isNoneChecked = noneName ? currentSelected.includes(noneName) : false;
 
                   const handleCheckboxChange = (value: string, checked: boolean) => {
                     let newSelected: string[];
-                    if (value === 'None') {
+                    if (noneName && value === noneName) {
                       // "None" clears all other selections and advances immediately
-                      newSelected = checked ? ['None'] : [];
+                      newSelected = checked ? [noneName] : [];
                     } else {
-                      // Remove 'None' if selecting an actual option
-                      const withoutNone = currentSelected.filter(v => v !== 'None');
+                      // Remove none option if selecting an actual option
+                      const withoutNone = noneName ? currentSelected.filter(v => v !== noneName) : currentSelected;
                       if (checked) {
                         newSelected = [...withoutNone, value];
                       } else {
@@ -945,21 +948,8 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
                   return (
                     <div className="kd-step-choises">
-                      {/* "None" (None) checkbox - always first */}
-                      <label style={{ display: 'block', marginBottom: '8px' }}>
-                        <input
-                          type="checkbox"
-                          name={String(addon.id)}
-                          value="None"
-                          checked={isNoneChecked}
-                          onChange={(e) => handleCheckboxChange('None', e.target.checked)}
-                          style={{ marginRight: '8px' }}
-                        />
-                        None
-                      </label>
-                      {/* Dynamic options from database */}
                       {addon.options.map((option, index) => {
-                        const isChecked = currentSelected.includes(option.name);
+                        const isChecked = option.name === noneName ? isNoneChecked : currentSelected.includes(option.name);
                         return (
                           <label key={index} style={{ display: 'block', marginBottom: '8px' }}>
                             <input
