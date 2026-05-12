@@ -60,23 +60,31 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
         hasMadeUk ? 'Present' : 'Not found'));
     }
 
-    // 5.6 FAQ section (benchmark product — check against KV source of truth)
+    // 5.6 FAQ section (benchmark product — warn only if WP has FAQ but KV/page doesn't)
     if (site.isHeadless) {
       const hasFaqOnPage = html.includes('faq') || html.includes('FAQ') || html.includes('frequently') || html.includes('Häufig') || html.includes('foire');
       let hasFaqInKv = false;
+      let hasFaqInWp = false;
       try {
         const kvProduct = await fetchJson(`${site.syncWorkerUrl}/product/${bp.slug}`);
         hasFaqInKv = Array.isArray(kvProduct?.faq) && kvProduct.faq.length > 0;
-      } catch { /* KV fetch failed — fall back to page-only check */ }
+      } catch { /* KV fetch failed */ }
+      try {
+        const wpProduct = await fetchJson(`${site.syncWorkerUrl}/product-config/${bp.slug}`);
+        hasFaqInWp = Array.isArray(wpProduct?.faq) && wpProduct.faq.length > 0;
+      } catch { /* WP fetch failed */ }
 
-      if (hasFaqInKv && !hasFaqOnPage) {
-        // FAQ exists in KV but not rendered — real problem
+      if (hasFaqInWp && !hasFaqInKv) {
+        // FAQ exists in WP but not synced to KV — sync issue
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'warn', 'FAQ in WP but missing from KV (sync needed)'));
+      } else if (hasFaqInKv && !hasFaqOnPage) {
+        // FAQ in KV but not rendered on page — build issue
         results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'fail', 'FAQ in KV but not rendered on page'));
-      } else if (!hasFaqInKv && !hasFaqOnPage) {
-        // No FAQ in KV, none on page — consistent, just informational
-        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', 'No FAQ in WP/KV (consistent)'));
+      } else if (hasFaqOnPage) {
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', 'Found'));
       } else {
-        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', hasFaqOnPage ? 'Found' : 'No FAQ section detected'));
+        // No FAQ anywhere — not an issue, just no content
+        results.push(result('5.6', CAT, s, `${prefix}: FAQ section`, 'pass', 'No FAQ content in WP'));
       }
     }
 
@@ -114,14 +122,14 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
     }
   }
 
-  // 5.11-5.13 FAQ sync: KV (source of truth from WP) vs Astro (rendered page)
-  // The /products bulk endpoint doesn't include FAQ — must fetch each /product/{slug} individually
+  // 5.11-5.13 FAQ sync: compare WP (source of truth) vs KV vs Astro
+  // Only warn/fail when WP has FAQ but KV or Astro doesn't (sync/build issue)
   if (site.isHeadless) {
     try {
       const productList: any[] = await fetchJson(`${site.syncWorkerUrl}/products`);
       const slugs = productList.map((p: any) => p.slug as string);
 
-      // Fetch individual product data in parallel batches of 10 to get FAQ field
+      // Fetch KV product data in parallel batches of 10 to get FAQ field
       const batchSize = 10;
       const productDetails: any[] = [];
       for (let i = 0; i < slugs.length; i += batchSize) {
@@ -134,12 +142,24 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
         productDetails.push(...batchResults.filter(Boolean));
       }
 
-      const withFaq = productDetails.filter((p: any) => Array.isArray(p.faq) && p.faq.length > 0);
-      const withoutFaq = productDetails.filter((p: any) => !Array.isArray(p.faq) || p.faq.length === 0);
+      const withFaqInKv = productDetails.filter((p: any) => Array.isArray(p.faq) && p.faq.length > 0);
+
+      // For products WITHOUT FAQ in KV, sample-check WP to detect sync gaps
+      const withoutFaqInKv = productDetails.filter((p: any) => !Array.isArray(p.faq) || p.faq.length === 0);
+      const wpHasKvMissing: string[] = [];
+      const sampleCheck = withoutFaqInKv.slice(0, 10); // spot-check 10
+      for (const p of sampleCheck) {
+        try {
+          const wpProduct = await fetchJson(`${site.syncWorkerUrl}/product-config/${p.slug}`);
+          if (Array.isArray(wpProduct?.faq) && wpProduct.faq.length > 0) {
+            wpHasKvMissing.push(p.slug);
+          }
+        } catch { /* skip */ }
+      }
 
       // Check products WITH FAQ in KV render FAQ on Astro page
       const kvHasAstroMissing: string[] = [];
-      for (const p of withFaq) {
+      for (const p of withFaqInKv) {
         const url = `${site.url}${site.paths.products}/${p.slug}/`;
         try {
           const { html: pageHtml } = await fetchHtml(url);
@@ -156,12 +176,11 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
 
       // Check a sample of products WITHOUT FAQ in KV don't show stale FAQ on Astro
       const astroHasKvMissing: string[] = [];
-      const sampleNoFaq = withoutFaq.slice(0, 10); // spot-check 10
+      const sampleNoFaq = withoutFaqInKv.slice(0, 10);
       for (const p of sampleNoFaq) {
         const url = `${site.url}${site.paths.products}/${p.slug}/`;
         try {
           const { html: pageHtml } = await fetchHtml(url);
-          // Look for actual FAQ content block, not just the word in nav/footer
           const hasFaqSection = pageHtml.includes('FAQPage')
             || pageHtml.includes('faq-section')
             || pageHtml.includes('faq-accordion')
@@ -169,23 +188,25 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
           if (hasFaqSection) {
             astroHasKvMissing.push(p.slug);
           }
-        } catch {
-          // skip fetch errors for sample check
-        }
+        } catch { /* skip */ }
       }
 
-      // Report results
-      if (kvHasAstroMissing.length === 0 && withFaq.length > 0) {
+      // 5.11 WP→KV sync: warn only if WP has FAQ that KV doesn't
+      if (wpHasKvMissing.length > 0) {
+        results.push(result('5.11', CAT, s, 'FAQ sync: WP→KV',
+          'warn', `${wpHasKvMissing.length} products have FAQ in WP but not in KV (sync needed)`,
+          wpHasKvMissing.join(', ')));
+      } else if (kvHasAstroMissing.length === 0 && withFaqInKv.length > 0) {
+        results.push(result('5.11', CAT, s, 'FAQ sync: WP→KV→Astro',
+          'pass', `All ${withFaqInKv.length} products with FAQ synced and rendered`));
+      } else if (kvHasAstroMissing.length > 0) {
         results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
-          'pass', `All ${withFaq.length} products with FAQ in KV render FAQ on Astro`));
-      } else if (withFaq.length === 0) {
-        results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
-          'warn', `No products have FAQ in KV (${productDetails.length} total products)`,
-          'Add FAQ content in WP Admin for products'));
-      } else {
-        results.push(result('5.11', CAT, s, 'FAQ sync: KV→Astro',
-          'fail', `${kvHasAstroMissing.length}/${withFaq.length} products have FAQ in KV but not rendered on Astro`,
+          'fail', `${kvHasAstroMissing.length}/${withFaqInKv.length} products have FAQ in KV but not rendered on Astro`,
           kvHasAstroMissing.join(', ')));
+      } else {
+        // No FAQ anywhere — not an issue
+        results.push(result('5.11', CAT, s, 'FAQ sync: WP→KV',
+          'pass', `No FAQ content in WP/KV (${productDetails.length} products checked)`));
       }
 
       if (astroHasKvMissing.length > 0) {
@@ -196,8 +217,8 @@ export async function checkPageContent(site: SiteConfig): Promise<CheckResult[]>
 
       // Summary stat
       results.push(result('5.13', CAT, s, 'FAQ coverage',
-        'pass', `${withFaq.length}/${productDetails.length} products have FAQ content`,
-        `Products with FAQ: ${withFaq.map((p: any) => p.slug).join(', ') || 'none'}`));
+        'pass', `${withFaqInKv.length}/${productDetails.length} products have FAQ content`,
+        `Products with FAQ: ${withFaqInKv.map((p: any) => p.slug).join(', ') || 'none'}`));
 
     } catch (e: any) {
       results.push(result('5.11', CAT, s, 'FAQ sync check',
