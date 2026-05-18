@@ -1,6 +1,22 @@
 ---
 // Global Footer Component - Matches WordPress Elementor footer exactly
 import ContactFormPopup from './ContactFormPopup.tsx';
+import { readSingleton } from '../lib/cms';
+
+const footerData = readSingleton<{
+  newsletterHeading: string;
+  newsletterDescription: string;
+  footerColumns: Array<{ heading: string; links: Array<{ label: string; href: string }> }>;
+  resellerHeading: string;
+  resellerText: string;
+  phone: string;
+  phoneDisplay: string;
+  copyright: string;
+  legalLinks: Array<{ label: string; href: string }>;
+}>('footer');
+
+const currentYear = new Date().getFullYear();
+const copyrightHtml = footerData.copyright.replace('{YEAR}', String(currentYear));
 ---
 
 <footer class="site-footer">
@@ -8,7 +24,7 @@ import ContactFormPopup from './ContactFormPopup.tsx';
   <div class="newsletter-section">
     <div class="newsletter-container">
       <div class="newsletter-content">
-        <h2 class="newsletter-heading">Interested?</h2>
+        <h2 class="newsletter-heading">{footerData.newsletterHeading}</h2>
         <form class="newsletter-form" id="newsletter-form" action="/api/newsletter" method="POST">
           <div class="form-row">
             <input
@@ -24,7 +40,7 @@ import ContactFormPopup from './ContactFormPopup.tsx';
           <div class="newsletter-message" id="newsletter-message"></div>
         </form>
         <p class="newsletter-description">
-          Be the first to see our latest sports merchandise – Subscribe to our newsletter!
+          {footerData.newsletterDescription}
         </p>
       </div>
     </div>
@@ -48,57 +64,29 @@ import ContactFormPopup from './ContactFormPopup.tsx';
         </a>
       </div>
 
-      <!-- About Us Column -->
-      <div class="footer-column">
-        <h3 class="footer-heading">About Us</h3>
-        <ul class="footer-links">
-          <li><a href="/about/">About Us</a></li>
-          <li><a href="/blogs/uk/">Blog</a></li>
-          <li><a href="/deliveries-and-returns/">Delivery & Returns</a></li>
-          <li><a href="/payment-methods/">Payment Methods</a></li>
-          <li><a href="/contact-us/">Contact</a></li>
-          <li><a href="/my-account/">My Account</a></li>
-        </ul>
-      </div>
-
-      <!-- Sports Column -->
-      <div class="footer-column">
-        <h3 class="footer-heading">Sports</h3>
-        <ul class="footer-links">
-          <li><a href="/collections/football/">Football</a></li>
-          <li><a href="/collections/rugby/">Rugby</a></li>
-          <li><a href="/collections/basketball/">Basketball</a></li>
-          <li><a href="/collections/running/">Running</a></li>
-          <li><a href="/collections/cycling/">Cycling</a></li>
-          <li><a href="/collections/volleyball/">Volleyball</a></li>
-        </ul>
-      </div>
-
-      <!-- Products Column -->
-      <div class="footer-column">
-        <h3 class="footer-heading">Products</h3>
-        <ul class="footer-links">
-          <li><a href="/collections/custom-scarves/">Scarves</a></li>
-          <li><a href="/collections/custom-beanies/">Beanies</a></li>
-          <li><a href="/collections/custom-printed-sportswear/">Sportswear</a></li>
-          <li><a href="/collections/custom-pennants/">Pennants</a></li>
-          <li><a href="/collections/accessories/">Accessories</a></li>
-          <li><a href="/collections/tifo/">Tifo</a></li>
-        </ul>
-      </div>
+      {footerData.footerColumns.map((col) => (
+        <div class="footer-column">
+          <h3 class="footer-heading">{col.heading}</h3>
+          <ul class="footer-links">
+            {col.links.map((link) => (
+              <li><a href={link.href}>{link.label}</a></li>
+            ))}
+          </ul>
+        </div>
+      ))}
 
       <!-- Reseller Column -->
       <div class="footer-column reseller-column">
         <div class="reseller-top">
-          <h3 class="footer-heading">Reseller or professional club?</h3>
-          <p class="footer-text">We offer bulk discounts.</p>
+          <h3 class="footer-heading">{footerData.resellerHeading}</h3>
+          <p class="footer-text">{footerData.resellerText}</p>
         </div>
         <div class="reseller-bottom">
           <ContactFormPopup client:visible triggerType="button" triggerText="Contact" triggerClassName="footer-cta-popup" />
           <div class="footer-phone">
-          <a href="tel:+442039664881">
+          <a href={`tel:${footerData.phone}`}>
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 256 256"><path d="M222.37,158.46l-47.11-21.11-.13-.06a16,16,0,0,0-15.17,1.4,8.12,8.12,0,0,0-.75.56L134.87,160c-15.42-7.49-31.34-23.29-38.83-38.51l20.78-24.71c.2-.25.39-.5.57-.77a16,16,0,0,0,1.32-15.06l0-.12L97.54,33.64a16,16,0,0,0-16.62-9.52A56.26,56.26,0,0,0,32,80c0,79.4,64.6,144,144,144a56.26,56.26,0,0,0,55.88-48.92A16,16,0,0,0,222.37,158.46ZM176,208A128.14,128.14,0,0,1,48,80,40.2,40.2,0,0,1,82.87,40a.61.61,0,0,0,0,.12l21,47L83.2,111.86a6.13,6.13,0,0,0-.57.77,16,16,0,0,0-1,15.7c9.06,18.53,27.73,37.06,46.46,46.11a16,16,0,0,0,15.75-1.14,8.44,8.44,0,0,0,.74-.56L168.89,152l47,21.05h0s.08,0,.11,0A40.21,40.21,0,0,1,176,208Z"></path></svg>
-            <span>(+44) 0203 9664881</span>
+            <span>{footerData.phoneDisplay}</span>
           </a>
           </div>
         </div>
@@ -112,9 +100,9 @@ import ContactFormPopup from './ContactFormPopup.tsx';
       <!-- Row 1: Legal links, Payment icons, Language switcher -->
       <div class="bottom-footer-row">
         <div class="legal-links">
-          <a href="/legal-notice/">Legal Notice</a>
-          <a href="/terms-of-service/">Terms of Service</a>
-          <a href="/privacy-policy/">Privacy Policy</a>
+          {footerData.legalLinks.map((link) => (
+            <a href={link.href}>{link.label}</a>
+          ))}
         </div>
         <div class="payment-icons">
           <img src="/images/pay-her-2.png" alt="Payment Methods" loading="lazy" width="300" height="30" />
@@ -150,8 +138,7 @@ import ContactFormPopup from './ContactFormPopup.tsx';
         </div>
       </div>
       <!-- Row 2: Copyright -->
-      <div class="copyright">
-        © 2025. Hercules Merchandise UK. All rights reserved | Design & Development by <a href="/design-by-perelweb">Perel Web Studio</a>
+      <div class="copyright" set:html={copyrightHtml}>
       </div>
     </div>
   </div>

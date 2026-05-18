@@ -482,6 +482,7 @@ function getQuantityRequestEmailHtml(data: {
   attributes: string;
   addons: string;
   pageUrl: string;
+  uploadedFiles?: UploadedFileResult[];
 }): string {
   return `
 <!DOCTYPE html>
@@ -577,6 +578,19 @@ function getQuantityRequestEmailHtml(data: {
       <tr>
         <td style="padding:6px 8px; border-bottom:1px solid #ccc; vertical-align:top;"><strong>Additional message:</strong></td>
         <td style="padding:6px 8px; border-bottom:1px solid #ccc;">${escapeHtml(data.message).replace(/\n/g, '<br>')}</td>
+      </tr>
+    </table>
+    ` : ''}
+
+    ${data.uploadedFiles && data.uploadedFiles.length > 0 ? `
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; margin:15px 0;">
+      <tr>
+        <td style="padding:6px 8px; border-bottom:1px solid #ccc; vertical-align:top;"><strong>Attached Files:</strong></td>
+        <td style="padding:6px 8px; border-bottom:1px solid #ccc;">${data.uploadedFiles.map(file => {
+          const sizeKB = Math.round(file.size / 1024);
+          const sizeDisplay = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`;
+          return `<a href="${escapeHtml(file.url)}" target="_blank" style="color:#469ADC; text-decoration:none;">📎 ${escapeHtml(file.name)}</a> <span style="color:#888; font-size:12px;">(${sizeDisplay})</span>`;
+        }).join('<br>')}</td>
       </tr>
     </table>
     ` : ''}
@@ -836,6 +850,7 @@ async function handleContactForm(request: Request, env: Env): Promise<Response> 
             attributes: contactData.attributes,
             addons: contactData.addons,
             pageUrl: contactData.pageUrl,
+            uploadedFiles: uploadedFiles,
           });
         } else {
           // General contact form (with file URLs)

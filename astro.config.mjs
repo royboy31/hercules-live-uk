@@ -3,6 +3,8 @@ import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
+import keystatic from '@keystatic/astro';
+import cloudflare from '@astrojs/cloudflare';
 import critters from 'astro-critters';
 import sitemap from '@astrojs/sitemap';
 
@@ -55,7 +57,8 @@ try {
 // https://astro.build/config
 export default defineConfig({
   site: 'https://hercules-merchandise.co.uk',
-  trailingSlash: 'always',
+  adapter: process.argv.includes('build') ? cloudflare() : undefined,
+  trailingSlash: 'ignore',
 
   vite: {
     plugins: [tailwindcss()],
@@ -89,6 +92,7 @@ export default defineConfig({
 
   integrations: [
     react(),
+    keystatic(),
     critters(),
     sitemap({
       // Filter out pages that shouldn't be in sitemap

@@ -7,10 +7,12 @@ import DesignService from '../components/DesignService.astro';
 import HerculesMerchandise from '../components/HerculesMerchandise.astro';
 import TrustLogos from '../components/TrustLogos.astro';
 import CustomerReviews from '../components/CustomerReviews.astro';
-import homepageData from '../data/homepage-products.json';
+import { readCollection } from '../lib/cms';
 import { siteConfig } from '../config/seo';
 
-const products = homepageData.products;
+const products = readCollection<{ name: string; slug: string; productId: number; image: string; alt: string; sortOrder: number }>('featured-products')
+  .sort((a, b) => a.sortOrder - b.sortOrder)
+  .map(p => ({ id: p.productId, name: p.name, slug: p.slug, image: p.image, alt: p.alt }));
 
 // SEO configuration for homepage
 const pageTitle = 'Custom Sports Merchandise, Teamwear & Football Scarves | Hercules Merchandise';

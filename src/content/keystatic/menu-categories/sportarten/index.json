@@ -1,0 +1,17 @@
+{
+  "categoryKey": "sportarten",
+  "categoryLabel": "Sports",
+  "items": [
+    { "label": "Football", "href": "/collections/football/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/Football.svg" },
+    { "label": "Rugby", "href": "/collections/rugby/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/Rugby-1.svg" },
+    { "label": "Basketball", "href": "/collections/basketball/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/Basketball-1.svg" },
+    { "label": "Running", "href": "/collections/running/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/running-1.svg" },
+    { "label": "Field Hockey", "href": "/collections/field-hockey/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/field-hockey-1.svg" },
+    { "label": "Volleyball", "href": "/collections/volleyball/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/volleyball-1.svg" },
+    { "label": "Handball", "href": "/collections/handball/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/handball-1.svg" },
+    { "label": "Cycling", "href": "/collections/cycling/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/cycling-1.svg" },
+    { "label": "Fitness", "href": "/collections/fitness/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/fitness-1.svg" },
+    { "label": "Golf", "href": "/collections/golf/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/golf-1.svg" },
+    { "label": "eSports", "href": "/collections/esports/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/esport-1.svg" }
+  ]
+}

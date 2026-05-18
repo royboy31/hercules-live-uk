@@ -57,8 +57,7 @@ const WORDPRESS_PATHS = [
   '/delivery-and-returns',
   '/payment-methods',
 
-  // Legal pages (legal-notice, terms-of-service, privacy-policy served by Astro)
-  '/terms-and-conditions',
+  // Legal pages served by Astro: /terms-and-conditions, /privacy-and-cookie-policy
 ];
 
 // Paths that should always go to Astro - UK English
@@ -291,6 +290,54 @@ export default {
     }
     if (pathname === '/mein-konto' || pathname.startsWith('/mein-konto/')) {
       return Response.redirect(new URL('/my-account/', url.origin).toString(), 301);
+    }
+
+    // ============================================
+    // WooCommerce REST API passthrough for external integrations (e.g. EXACT)
+    // Authenticated WC API requests don't need cookie handling or content rewriting
+    // ============================================
+    if (pathname.startsWith('/wp-json/wc/')) {
+      const hasAuthHeader = request.headers.has('Authorization');
+      const hasOAuthParams = search.includes('consumer_key') || search.includes('oauth_consumer_key');
+
+      if (hasAuthHeader || hasOAuthParams) {
+        try {
+          const wpOrigin = env.WORDPRESS_ORIGIN;
+          const targetUrl = new URL(pathname + search, wpOrigin);
+          const headers = new Headers(request.headers);
+          headers.set('Host', new URL(wpOrigin).host);
+          headers.set('X-Forwarded-Host', url.host);
+          headers.set('X-Forwarded-Proto', url.protocol.replace(':', ''));
+
+          const response = await fetch(
+            new Request(targetUrl.toString(), {
+              method: request.method,
+              headers,
+              body: request.body,
+              redirect: 'manual',
+            })
+          );
+
+          // Return response as-is, only adding CORS and debug headers
+          const newHeaders = new Headers(response.headers);
+          newHeaders.set('Access-Control-Allow-Origin', '*');
+          newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+          newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+          newHeaders.set('X-Edge-Router', 'hercules-wc-passthrough');
+
+          return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders,
+          });
+        } catch (error) {
+          console.error('WC API passthrough error:', error);
+          return new Response(JSON.stringify({ error: 'WC API proxy error', details: String(error) }), {
+            status: 502,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      }
     }
 
     // Handle CORS preflight for API requests
