@@ -1,0 +1,18 @@
+{
+  "categoryKey": "themen",
+  "categoryLabel": "Topics",
+  "items": [
+    { "label": "Summer", "href": "/collections/summer/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/summer-1.svg" },
+    { "label": "Winter", "href": "/collections/winter/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/winter-1.svg" },
+    { "label": "Sustainable", "href": "/collections/sustainable/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/sustainable-2.svg" },
+    { "label": "Made in Europe", "href": "/collections/made-in-europe/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/made-in-europe-1.svg" },
+    { "label": "Fashion", "href": "/collections/fashion/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/fashion-1.svg" },
+    { "label": "Back to School", "href": "/collections/back-to-school/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/back-to-school-1.svg" },
+    { "label": "Tifo", "href": "/collections/tifo/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/tifo-1.svg" },
+    { "label": "Christmas", "href": "/collections/christmas/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/christmas-1.svg" },
+    { "label": "Small Prices", "href": "/collections/small-prices/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/smallprices.svg" },
+    { "label": "Business", "href": "/collections/business/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/business.svg" },
+    { "label": "Giveaways", "href": "/collections/give-aways/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/giive-aways.svg" },
+    { "label": "Kids", "href": "/collections/kids/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/kids.svg" }
+  ]
+}

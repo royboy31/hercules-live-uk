@@ -1,39 +1,23 @@
 ---
 // Hero Slider - Matching WordPress Elementor slider exactly
 // Container: 1280px, Button: pill-shaped light blue
+import { readSingleton } from '../lib/cms';
 
-const slides = [
-  {
-    id: 1,
-    heading: 'Your Team.<br>Your Colours.<br>Your Shirt.',
-    description: 'Bring your team\'s identity to life with fully custom sports shirts.',
-    buttonText: 'Discover Our Teamwear',
-    buttonLink: '/collections/custom-printed-sportswear/',
-    image: '/images/slider/slide-1-teamwear.webp',
-    imageMobile: '/images/slider/slide-1-teamwear-mobile.webp',
-    imageMobileSm: '/images/slider/slide-1-teamwear-mobile-sm.webp',
-  },
-  {
-    id: 2,
-    heading: 'Stand Out<br>In Your Colours<br>With Pride.',
-    description: 'Bring your team\'s colours to life with our custom fan scarves.',
-    buttonText: 'Discover Our Scarves',
-    buttonLink: '/collections/custom-scarves/',
-    image: '/images/slider/slide-2-scarves.webp',
-    imageMobile: '/images/slider/slide-2-scarves-mobile.webp',
-    imageMobileSm: '/images/slider/slide-2-scarves-mobile-sm.webp',
-  },
-  {
-    id: 3,
-    heading: 'Changing Room<br>Comfort,<br>Street Style Pride.',
-    description: 'Custom slides with your club colours, perfect for match days and beyond.',
-    buttonText: 'Discover Our Club Slides',
-    buttonLink: '/products/custom-club-slides-and-slippers/',
-    image: '/images/slider/slide-3-slides.webp',
-    imageMobile: '/images/slider/slide-3-slides-mobile.webp',
-    imageMobileSm: '/images/slider/slide-3-slides-mobile-sm.webp',
-  },
-];
+const heroData = readSingleton<{
+  tagline: string;
+  subheading: string;
+  slides: Array<{
+    heading: string;
+    description: string;
+    buttonText: string;
+    buttonLink: string;
+    image: string;
+    imageMobile: string;
+    imageMobileSm: string;
+  }>;
+}>('hero-slider');
+
+const slides = heroData.slides.map((s, i) => ({ id: i + 1, ...s }));
 ---
 
 <section class="hero-section">
@@ -82,8 +66,8 @@ const slides = [
     </div>
 
     <!-- Floating heading -->
-    <h1 class="hero-tagline">Custom Sports Merchandise & Teamwear for Clubs and Organisations</h1>
-    <p class="hero-subheading">Including custom football scarves, sports kits and fan merchandise</p>
+    <h1 class="hero-tagline">{heroData.tagline}</h1>
+    <p class="hero-subheading">{heroData.subheading}</p>
   </div>
 </section>
 

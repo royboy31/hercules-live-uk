@@ -1,0 +1,48 @@
+{
+  "newsletterHeading": "Interested?",
+  "newsletterDescription": "Be the first to see our latest sports merchandise – Subscribe to our newsletter!",
+  "footerColumns": [
+    {
+      "heading": "About Us",
+      "links": [
+        { "label": "About Us", "href": "/about/" },
+        { "label": "Blog", "href": "/blogs/uk/" },
+        { "label": "Delivery & Returns", "href": "/deliveries-and-returns/" },
+        { "label": "Payment Methods", "href": "/payment-methods/" },
+        { "label": "Contact", "href": "/contact-us/" },
+        { "label": "My Account", "href": "/my-account/" }
+      ]
+    },
+    {
+      "heading": "Sports",
+      "links": [
+        { "label": "Football", "href": "/collections/football/" },
+        { "label": "Rugby", "href": "/collections/rugby/" },
+        { "label": "Basketball", "href": "/collections/basketball/" },
+        { "label": "Running", "href": "/collections/running/" },
+        { "label": "Cycling", "href": "/collections/cycling/" },
+        { "label": "Volleyball", "href": "/collections/volleyball/" }
+      ]
+    },
+    {
+      "heading": "Products",
+      "links": [
+        { "label": "Scarves", "href": "/collections/custom-scarves/" },
+        { "label": "Beanies", "href": "/collections/custom-beanies/" },
+        { "label": "Sportswear", "href": "/collections/custom-printed-sportswear/" },
+        { "label": "Pennants", "href": "/collections/custom-pennants/" },
+        { "label": "Accessories", "href": "/collections/accessories/" },
+        { "label": "Tifo", "href": "/collections/tifo/" }
+      ]
+    }
+  ],
+  "resellerHeading": "Reseller or professional club?",
+  "resellerText": "We offer bulk discounts.",
+  "phone": "+442039664881",
+  "phoneDisplay": "(+44) 0203 9664881",
+  "copyright": "© {YEAR} GBI Ventures Ltd. Trading as Hercules Merchandise. Registered in England & Wales No. 15416150. Registered office: Unit 33, Waterside Schooner Court, 44-48 Wharf Road, London, England, N1 7UX.",
+  "legalLinks": [
+    { "label": "Terms and Conditions", "href": "/terms-and-conditions/" },
+    { "label": "Privacy and Cookie Policy", "href": "/privacy-and-cookie-policy/" }
+  ]
+}

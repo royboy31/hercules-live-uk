@@ -1,6 +1,10 @@
 ---
 // Hercules Merchandise - About Section
 import ContactFormPopup from './ContactFormPopup.tsx';
+import { readSingleton } from '../lib/cms';
+
+const sections = readSingleton<{ herculesMerchandise: { heading: string; headingHighlight: string; paragraphs: string[]; ctaText: string; aboutImage: string; aboutImageAlt: string } }>('homepage-sections');
+const { heading, headingHighlight, paragraphs, ctaText, aboutImage, aboutImageAlt } = sections.herculesMerchandise;
 ---
 
 <section class="hercules-section">
@@ -8,19 +12,16 @@ import ContactFormPopup from './ContactFormPopup.tsx';
     <!-- Content Column -->
     <div class="content-column">
       <h2 class="section-heading">
-        Custom Sports Merchandise and Teamwear <span class="highlight">Made in Europe</span>
+        {heading} <span class="highlight">{headingHighlight}</span>
       </h2>
       <div class="description">
-        <p>At <strong>Hercules Merchandise</strong>, we design and deliver high-quality, eco-conscious <strong>teamwear and branded sports gear</strong> for <strong>sports clubs, associations, and businesses</strong> across the UK and Europe. Whether you're gearing up for match day or strengthening your brand presence, we bring your identity to life through expertly crafted, fully customisable products.</p>
-        <p>From <strong>scarves and beanies to kits, training wear, and promotional items</strong>, all our products are made to order and personalised with your logo, colours, and designs. We combine years of industry experience with a commitment to sustainable production – most of our items are proudly made in Europe.</p>
-        <p>We offer <strong>fast turnaround times</strong> and reliable delivery across Europe, ensuring you get what you need, when you need it.</p>
-        <p>If you'd like to discuss your project or get a quote, <strong>we'd love to hear from you</strong>.</p>
+        {paragraphs.map((p) => <p set:html={p} />)}
       </div>
       <div class="cta-wrapper">
         <ContactFormPopup
           client:visible
           triggerType="button"
-          triggerText="Contact Us Now"
+          triggerText={ctaText}
         />
       </div>
     </div>
@@ -28,8 +29,8 @@ import ContactFormPopup from './ContactFormPopup.tsx';
     <!-- Image Column -->
     <div class="image-column">
       <img
-        src="/images/about-hercules.webp"
-        alt="Hercules Merchandise - Custom Sportswear"
+        src={aboutImage}
+        alt={aboutImageAlt}
         class="about-image"
         loading="lazy"
         width="600"

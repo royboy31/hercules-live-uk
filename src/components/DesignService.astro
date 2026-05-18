@@ -1,6 +1,10 @@
 ---
 // Design Service Section - "Bring Your Vision to Life"
 import ContactFormPopup from './ContactFormPopup.tsx';
+import { readSingleton } from '../lib/cms';
+
+const sections = readSingleton<{ designService: { heading: string; headingHighlight: string; paragraphs: string[]; ctaText: string; mainImage: string } }>('homepage-sections');
+const { heading, headingHighlight, paragraphs, ctaText, mainImage } = sections.designService;
 ---
 
 <section class="design-service-section">
@@ -9,7 +13,7 @@ import ContactFormPopup from './ContactFormPopup.tsx';
     <div class="image-column">
       <div class="image-wrapper">
         <img
-          src="/images/design/design-herc-3-optimized.webp"
+          src={mainImage}
           alt="Custom Design Service"
           class="main-image"
           loading="lazy"
@@ -32,17 +36,16 @@ import ContactFormPopup from './ContactFormPopup.tsx';
     <!-- Content Column -->
     <div class="content-column">
       <h2 class="section-heading">
-        Free Design Service for Your <span class="highlight">Custom Sports Merchandise</span>
+        {heading} <span class="highlight">{headingHighlight}</span>
       </h2>
       <div class="description">
-        <p>Need personalised sports gear or teamwear? Our team of real designers will turn your idea into a unique, professional design – completely free. Whether it's for a sports team, club, or business, we'll create something that fits your style, from football kits to scarves and more.</p>
-        <p>Just tell us what you're looking for, and we'll take care of the rest.</p>
+        {paragraphs.map((p) => <p>{p}</p>)}
       </div>
       <div class="cta-wrapper">
         <ContactFormPopup
           client:visible
           triggerType="button"
-          triggerText="Ask for your free design"
+          triggerText={ctaText}
         />
       </div>
     </div>

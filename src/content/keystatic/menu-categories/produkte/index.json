@@ -1,0 +1,19 @@
+{
+  "categoryKey": "produkte",
+  "categoryLabel": "Products",
+  "items": [
+    { "label": "Sportswear", "href": "/collections/custom-printed-sportswear/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/teamwear-1.svg" },
+    { "label": "Scarves", "href": "/collections/custom-scarves/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/scarves-1.svg" },
+    { "label": "Beanies", "href": "/collections/custom-beanies/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/beanies-3.svg" },
+    { "label": "Headwear", "href": "/collections/headwear/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/cap-1.svg" },
+    { "label": "Pennants", "href": "/collections/custom-pennants/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/pennants-3.svg" },
+    { "label": "Towels", "href": "/collections/towels/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/towelst-1.svg" },
+    { "label": "Flags", "href": "/collections/flags/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/flags-1.svg" },
+    { "label": "Footwear", "href": "/collections/footwear/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/footwear-1.svg" },
+    { "label": "Bags", "href": "/collections/bags/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/sportsbag-1.svg" },
+    { "label": "Textiles", "href": "/collections/custom-textile/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/textile-1.svg" },
+    { "label": "Drinkware", "href": "/collections/drinkware/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/drinkware-1.svg" },
+    { "label": "Balls", "href": "/collections/balls/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/balls-1.svg" },
+    { "label": "Accessories", "href": "/collections/accessories/", "iconUrl": "https://hercules-merchandise.co.uk/wp-content/uploads/hercules-menu-icons/accessories-1.svg" }
+  ]
+}
