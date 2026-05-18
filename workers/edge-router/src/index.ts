@@ -317,6 +317,17 @@ export default {
       return Response.redirect(new URL('/collections/custom-pennants/', url.origin).toString(), 301);
     }
 
+    // Old legal page redirects (renamed 2026-05-18)
+    if (pathname === '/terms-of-service' || pathname === '/terms-of-service/') {
+      return Response.redirect(new URL('/terms-and-conditions/', url.origin).toString(), 301);
+    }
+    if (pathname === '/privacy-policy' || pathname === '/privacy-policy/') {
+      return Response.redirect(new URL('/privacy-and-cookie-policy/', url.origin).toString(), 301);
+    }
+    if (pathname === '/legal-notice' || pathname === '/legal-notice/') {
+      return Response.redirect(new URL('/terms-and-conditions/', url.origin).toString(), 301);
+    }
+
     // German page redirects
     if (pathname === '/warenkorb' || pathname === '/warenkorb/') {
       return Response.redirect(new URL('/cart/', url.origin).toString(), 301);
