@@ -363,6 +363,50 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     });
   }, [config, attributeKeys]);
 
+  // Filter attribute terms to only show options that lead to a valid variation
+  // given the currently selected values for other attributes
+  const getAvailableTerms = (attrKey: string): TermInfo[] => {
+    if (!config) return [];
+    const attr = config.attributes[attrKey];
+    if (!attr) return [];
+
+    // If no variations or no other attribute selected yet, show all terms
+    if (!config.variations || config.variations.length === 0) return attr.terms;
+
+    // Build a map of the other selected attributes (excluding the current one)
+    const otherSelections: Record<string, string> = {};
+    for (const key of attributeKeys) {
+      if (key === attrKey) continue;
+      const val = selectedAttributes[key];
+      if (val) otherSelections[key] = val;
+    }
+
+    // If nothing else is selected, show all
+    if (Object.keys(otherSelections).length === 0) return attr.terms;
+
+    // Find which term slugs for this attribute still have a matching variation
+    const validSlugs = new Set<string>();
+    for (const v of config.variations) {
+      // Check if this variation matches all the other selected attributes
+      const matchesOthers = Object.entries(otherSelections).every(([key, value]) => {
+        const normalizedKey = key.replace('attribute_', '');
+        const varValue = v.attributes[key] || v.attributes[`attribute_${normalizedKey}`] || v.attributes[normalizedKey];
+        return !varValue || varValue === value; // empty = "any"
+      });
+      if (matchesOthers) {
+        // This variation is compatible — add this attribute's value as valid
+        const normalizedKey = attrKey.replace('attribute_', '');
+        const termSlug = v.attributes[attrKey] || v.attributes[`attribute_${normalizedKey}`] || v.attributes[normalizedKey];
+        if (termSlug) validSlugs.add(termSlug);
+      }
+    }
+
+    // If no slugs found (shouldn't happen), show all to avoid empty UI
+    if (validSlugs.size === 0) return attr.terms;
+
+    return attr.terms.filter(t => validSlugs.has(t.slug));
+  };
+
   // Check if an attribute should be visible based on enabled_if conditions
   const isAttributeVisible = (attrKey: string, index: number): boolean => {
     if (!config) return false;
@@ -500,7 +544,35 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
   // Handle attribute selection
   const handleAttributeSelect = (attrKey: string, value: string, stepIndex: number) => {
-    setSelectedAttributes(prev => ({ ...prev, [attrKey]: value }));
+    setSelectedAttributes(prev => {
+      const next = { ...prev, [attrKey]: value };
+      // Clear selections for subsequent attributes whose current value
+      // is no longer valid given the new selection
+      const currentIndex = attributeKeys.indexOf(attrKey);
+      for (let i = currentIndex + 1; i < attributeKeys.length; i++) {
+        const laterKey = attributeKeys[i];
+        if (!next[laterKey]) continue;
+        // Check if the later selection is still valid
+        const validSlugs = new Set<string>();
+        const normalizedLater = laterKey.replace('attribute_', '');
+        for (const v of (config?.variations || [])) {
+          const matchesPrior = attributeKeys.slice(0, i).every(k => {
+            if (!next[k]) return true;
+            const nk = k.replace('attribute_', '');
+            const val = v.attributes[k] || v.attributes[`attribute_${nk}`] || v.attributes[nk];
+            return !val || val === next[k];
+          });
+          if (matchesPrior) {
+            const slug = v.attributes[laterKey] || v.attributes[`attribute_${normalizedLater}`] || v.attributes[normalizedLater];
+            if (slug) validSlugs.add(slug);
+          }
+        }
+        if (validSlugs.size > 0 && !validSlugs.has(next[laterKey])) {
+          delete next[laterKey];
+        }
+      }
+      return next;
+    });
     setMaxVisibleStep(stepIndex + 1);
   };
 
@@ -712,7 +784,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
 
                   return (
                     <div className="kd-image-selector" style={{ display: 'flex', flexFlow: 'row wrap', gap: `${gapPx}px` }}>
-                      {attr.terms.map(term => (
+                      {getAvailableTerms(attrKey).map(term => (
                         <div
                           key={term.slug}
                           className={`kd-image-selector-col kd-img-sel-${textPos}`}
@@ -777,7 +849,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                     style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #ddd' }}
                   >
                     <option value="">Select an option</option>
-                    {attr.terms.map(term => (
+                    {getAvailableTerms(attrKey).map(term => (
                       <option key={term.slug} value={term.slug}>{term.name}</option>
                     ))}
                   </select>
@@ -786,7 +858,7 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
                 {/* Select Boxes */}
                 {attr.display_type === 'select_boxes' && (
                   <div className="box-selector" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    {attr.terms.map(term => (
+                    {getAvailableTerms(attrKey).map(term => (
                       <div
                         key={term.slug}
                         className="box-selector-item"
