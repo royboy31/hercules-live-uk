@@ -1837,15 +1837,14 @@ export default {
         console.log(`Batch sync: ${productIds.length} products (source: ${data.source})`);
 
         ctx.waitUntil(
-          Promise.all([
-            ...productIds.map(id => syncSingleProduct(env, id).catch(e => {
+          Promise.all(
+            productIds.map(id => syncSingleProduct(env, id).catch(e => {
               console.error(`Failed to sync product ${id}:`, e);
               return null;
-            })),
-            triggerSiteRebuild(env)
-              .then(result => console.log(`Batch rebuild result: ${result.reason}`))
-              .catch(error => console.error(`Batch rebuild error:`, error)),
-          ])
+            }))
+          ).then(() => triggerSiteRebuild(env))
+           .then(result => console.log(`Batch rebuild result: ${result.reason}`))
+           .catch(error => console.error(`Batch rebuild error:`, error))
         );
 
         return new Response(JSON.stringify({ success: true, count: productIds.length }), {
