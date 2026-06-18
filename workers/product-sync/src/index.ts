@@ -1496,7 +1496,7 @@ async function deletePost(env: Env, postId: number): Promise<void> {
 }
 
 // Debounce interval for site rebuilds (5 minutes)
-const REBUILD_DEBOUNCE_MS = 5 * 60 * 1000;
+const REBUILD_DEBOUNCE_MS = 2 * 60 * 1000;
 
 // Verify KV product count matches WooCommerce before allowing a rebuild.
 // Returns { ok, kvCount, wpCount, reason } — ok=false means counts diverge too much.
