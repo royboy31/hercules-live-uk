@@ -1819,6 +1819,47 @@ export default {
       }
     }
 
+    // Batch product sync — syncs multiple products then triggers a single rebuild
+    // Used by wc-per-category-sorting plugin when category product order changes
+    if (url.pathname === '/webhook/batch-product-sync' && request.method === 'POST') {
+      try {
+        const signature = request.headers.get('X-WC-Webhook-Signature') || '';
+        const payload = await request.text();
+
+        const isValid = await verifyWebhookSignature(payload, signature, env.WEBHOOK_SECRET);
+        if (!isValid) {
+          return new Response('Invalid signature', { status: 401 });
+        }
+
+        const data = JSON.parse(payload);
+        const productIds: number[] = data.product_ids || [];
+
+        console.log(`Batch sync: ${productIds.length} products (source: ${data.source})`);
+
+        ctx.waitUntil(
+          Promise.all([
+            ...productIds.map(id => syncSingleProduct(env, id).catch(e => {
+              console.error(`Failed to sync product ${id}:`, e);
+              return null;
+            })),
+            triggerSiteRebuild(env)
+              .then(result => console.log(`Batch rebuild result: ${result.reason}`))
+              .catch(error => console.error(`Batch rebuild error:`, error)),
+          ])
+        );
+
+        return new Response(JSON.stringify({ success: true, count: productIds.length }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (error) {
+        console.error('Batch sync error:', error);
+        return new Response(JSON.stringify({ error: String(error) }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     // Webhook endpoint for product deletion
     if (url.pathname === '/webhook/product-delete' && request.method === 'POST') {
       try {
