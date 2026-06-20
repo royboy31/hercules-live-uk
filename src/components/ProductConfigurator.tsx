@@ -732,8 +732,9 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
     <div id="pearl-wc-steps-form" className="pearl-wc-steps-form">
       {/* Step indicator - matches WordPress exactly */}
       <div className="pearl-step-indicator">
-        <h2>CREATE YOUR PRODUCT — STEP {currentStepNum} OF {totalSteps}</h2>
-        <span>From <strong>{minQuantity} PCS</strong></span>
+        <h2>GET A QUOTE</h2>
+        <span className="pearl-step-counter">STEP {currentStepNum} OF {totalSteps}</span>
+        <span className="pearl-min-qty-badge">FROM {minQuantity} PCS</span>
       </div>
 
       {/* Attribute Steps - Only render visible attributes (excludes single default options) */}
