@@ -436,6 +436,30 @@ input[type="range"]::-ms-thumb {
     text-transform: uppercase;
     color: #253461;
     margin: 0 !important;
+    flex: 1;
+}
+
+.pearl-step-counter {
+    font-family: Jost;
+    font-weight: 500;
+    font-size: 13px;
+    color: #253461;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.pearl-min-qty-badge {
+    font-family: Jost;
+    font-weight: 600;
+    font-size: 12px;
+    color: #10C99E;
+    background-color: white;
+    border: 1.5px solid #10C99E;
+    border-radius: 50px;
+    padding: 5px 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-transform: uppercase;
 }
 
 /* Individual step */
@@ -1008,15 +1032,31 @@ input[type="range"]::-webkit-slider-runnable-track {
         overflow-x: hidden;
     }
 
-    /* Step indicator - align "FROM X PCS" with CHANGE buttons */
+    /* Step indicator - flex layout for counter + badge support */
     .pearl-step-indicator {
-        display: grid !important;
-        grid-template-columns: 75% 25%;
+        display: flex !important;
+        flex-wrap: wrap;
         padding: 15px 21px;
+        gap: 6px;
+        position: relative;
     }
 
     .pearl-step-indicator h2 {
         font-size: 13px;
+        flex: 1 1 100%;
+        padding-right: 130px;
+    }
+
+    .pearl-step-counter {
+        font-size: 11px;
+    }
+
+    .pearl-min-qty-badge {
+        font-size: 11px;
+        padding: 4px 10px;
+        position: absolute;
+        top: 15px;
+        right: 21px;
     }
 
     .pearl-step-indicator span {
