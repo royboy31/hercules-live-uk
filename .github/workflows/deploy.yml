@@ -59,6 +59,7 @@ jobs:
           WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
           WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
           IS_STAGING: 'true'
+          PUBLIC_IS_STAGING: 'true'
 
       - name: Build Astro site (production)
         if: steps.target.outputs.env == 'production'
