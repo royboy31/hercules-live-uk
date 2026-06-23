@@ -1462,13 +1462,14 @@ export default function ProductConfigurator({ productSlug, workerUrl = 'https://
       <div className="kd-vision-content">
         <h3>BRING YOUR VISION TO LIFE <span style={{ color: '#469ADC' }}>GET A CUSTOM DESIGN!</span></h3>
         <a
-          href="#design-section"
+          href="#tab-design"
           className="kd-btn-design"
           onClick={(e) => {
             e.preventDefault();
-            const designSection = document.getElementById('design-section');
-            if (designSection) {
-              designSection.scrollIntoView({ behavior: 'smooth' });
+            const designTabBtn = document.querySelector('.product-tab[data-tab="design"]') as HTMLElement;
+            if (designTabBtn) {
+              designTabBtn.click();
+              designTabBtn.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
           }}
         >GO TO DESIGN SECTION</a>
