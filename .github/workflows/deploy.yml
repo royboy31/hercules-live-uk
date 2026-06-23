@@ -10,6 +10,14 @@ on:
         description: 'Reason for manual deploy'
         required: false
         default: 'Manual trigger'
+      target:
+        description: 'Deploy target'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
 
 jobs:
   deploy:
@@ -32,7 +40,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Astro site
+      - name: Set deploy target
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "env=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.target }}" = "staging" ]; then
+            echo "env=staging" >> $GITHUB_OUTPUT
+          else
+            echo "env=production" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Astro site (staging)
+        if: steps.target.outputs.env == 'staging'
+        run: npm run build
+        env:
+          WORKER_URL: https://hercules-product-sync-uk.gilles-86d.workers.dev
+          WC_CONSUMER_KEY: ${{ secrets.WC_CONSUMER_KEY }}
+          WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
+          IS_STAGING: 'true'
+
+      - name: Build Astro site (production)
+        if: steps.target.outputs.env == 'production'
         run: npm run build
         env:
           WORKER_URL: https://hercules-product-sync-uk-production.gilles-86d.workers.dev
@@ -40,13 +69,23 @@ jobs:
           WC_CONSUMER_SECRET: ${{ secrets.WC_CONSUMER_SECRET }}
 
       - name: Deploy Product Sync Worker
+        if: steps.target.outputs.env == 'production'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config workers/product-sync/wrangler.toml --env production
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Staging
+        if: steps.target.outputs.env == 'staging'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=hercules-uk-staging --branch=main
+
+      - name: Deploy to Production
+        if: steps.target.outputs.env == 'production'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -54,10 +93,15 @@ jobs:
           command: pages deploy dist/ --project-name=hercules-uk
 
       - name: Output deployment URL
-        run: echo "Deployed to https://hercules-uk.pages.dev"
+        run: |
+          if [ "${{ steps.target.outputs.env }}" = "production" ]; then
+            echo "Deployed to https://hercules-uk.pages.dev (production)"
+          else
+            echo "Deployed to https://hercules-uk-staging-e9z.pages.dev (staging)"
+          fi
 
       - name: Trigger post-deploy health check
-        if: success()
+        if: success() && steps.target.outputs.env == 'production'
         run: |
           curl -s -X POST \
             -H "Accept: application/vnd.github.v3+json" \
