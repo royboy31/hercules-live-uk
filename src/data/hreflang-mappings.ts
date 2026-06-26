@@ -193,7 +193,7 @@ export const PRODUCT_MAPPINGS: Record<string, Record<Locale, string>> = {
   'knoechelsocken': { de: 'knoechelsocken', en: 'ankle-socks', fr: 'soquettes' },
 
   // Scarves - Main Types
-  'personalisierter-fussballschal': { de: 'personalisierter-fussballschal', en: 'custom-football-scarf', fr: 'echarpe-hd-deluxe-personnalisee' },
+  'personalisierter-fussballschal': { de: 'personalisierter-fussballschal', en: 'custom-football-scarf', fr: 'echarpe-de-foot-personnalisee' },
   'individuell-gewebter-schal': { de: 'individuell-gewebter-schal', en: 'custom-woven-scarf', fr: 'echarpe-personnalisee-tissee' },
   'personalisierter-fleece-schal': { de: 'personalisierter-fleece-schal', en: 'custom-fleece-scarf', fr: 'echarpe-personnalisee-polaire' },
   'individuell-bedruckter-fanschal': { de: 'individuell-bedruckter-fanschal', en: 'custom-printed-scarves', fr: 'echarpe-personnalisee-sublimee' },
@@ -282,7 +282,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
       // Try direct lookup (DE slug as key)
       const directMapping = CATEGORY_MAPPINGS[slug];
       if (directMapping) {
-        result.de = `${DOMAINS.de}/collections/${directMapping.de}/`;
+        result.de = `${DOMAINS.de}/kollektionen/${directMapping.de}/`;
         result.en = `${DOMAINS.en}/collections/${directMapping.en}/`;
         result.fr = `${DOMAINS.fr}/collections/${directMapping.fr}/`;
       } else {
@@ -290,7 +290,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
         let found = false;
         for (const [, mapping] of Object.entries(CATEGORY_MAPPINGS)) {
           if (mapping.en === slug) {
-            result.de = `${DOMAINS.de}/collections/${mapping.de}/`;
+            result.de = `${DOMAINS.de}/kollektionen/${mapping.de}/`;
             result.en = `${DOMAINS.en}/collections/${mapping.en}/`;
             result.fr = `${DOMAINS.fr}/collections/${mapping.fr}/`;
             found = true;
@@ -298,7 +298,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
           }
         }
         if (!found) {
-          result.de = `${DOMAINS.de}/collections/${slug}/`;
+          result.de = `${DOMAINS.de}/kollektionen/${slug}/`;
           result.fr = `${DOMAINS.fr}/collections/${slug}/`;
         }
       }
@@ -312,7 +312,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
       const deSlug = deMatch[1];
       const mapping = PRODUCT_MAPPINGS[deSlug];
       if (mapping) {
-        result.de = `${DOMAINS.de}/products/${mapping.de}/`;
+        result.de = `${DOMAINS.de}/produkte/${mapping.de}/`;
         result.en = `${DOMAINS.en}/products/${mapping.en}/`;
         result.fr = `${DOMAINS.fr}/products/${mapping.fr}/`;
       } else {
@@ -325,7 +325,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
       let found = false;
       for (const [deSlug, mapping] of Object.entries(PRODUCT_MAPPINGS)) {
         if (mapping.en === enSlug) {
-          result.de = `${DOMAINS.de}/products/${mapping.de}/`;
+          result.de = `${DOMAINS.de}/produkte/${mapping.de}/`;
           result.en = `${DOMAINS.en}/products/${mapping.en}/`;
           result.fr = `${DOMAINS.fr}/products/${mapping.fr}/`;
           found = true;
@@ -334,7 +334,7 @@ export function getHreflangUrls(dePath: string, pageType: 'page' | 'collection' 
       }
       if (!found) {
         // Keep same slug for all if no mapping found
-        result.de = `${DOMAINS.de}/products/${enSlug}/`;
+        result.de = `${DOMAINS.de}/produkte/${enSlug}/`;
         result.fr = `${DOMAINS.fr}/products/${enSlug}/`;
       }
     }
