@@ -108,6 +108,7 @@ interface SyncedProduct {
   currency: string;
   stock_status: string;
   categories: Array<{ id: number; name: string; slug: string }>;
+  primary_category: { id: number; name: string; slug: string } | null;
   tags: Array<{ id: number; name: string; slug: string }>;
   images: Array<{
     id: number;
@@ -741,6 +742,17 @@ async function transformProduct(
   // These are now exposed as a top-level field by our REST API filter
   const categoryPositions: Record<string, number> = product.category_positions || {};
 
+  // Primary category from Rank Math (for breadcrumbs)
+  const primaryCatId = getMeta('rank_math_primary_product_cat');
+  let primaryCategory: { id: number; name: string; slug: string } | null = null;
+  if (primaryCatId && primaryCatId !== '0') {
+    const catId = parseInt(primaryCatId, 10);
+    const matchedCat = product.categories.find((c: any) => c.id === catId);
+    if (matchedCat) {
+      primaryCategory = { id: matchedCat.id, name: matchedCat.name, slug: matchedCat.slug };
+    }
+  }
+
   return {
     id: product.id,
     name: product.name,
@@ -757,6 +769,7 @@ async function transformProduct(
     currency: 'GBP',
     stock_status: product.stock_status,
     categories: product.categories,
+    primary_category: primaryCategory,
     tags: product.tags,
     images,
     attributes: transformedAttributes,
