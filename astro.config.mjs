@@ -57,6 +57,11 @@ try {
 // https://astro.build/config
 export default defineConfig({
   site: 'https://hercules-merchandise.co.uk',
+  // Disable Astro's default Origin check: /api/* endpoints are intentional
+  // public proxies (CORS *), and requests are proxied via the edge-router,
+  // so the Origin header never matches the pages.dev host (caused 403s on
+  // legitimate contact-form POSTs).
+  security: { checkOrigin: false },
   adapter: process.argv.includes('build') ? cloudflare() : undefined,
   trailingSlash: 'ignore',
 
