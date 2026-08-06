@@ -452,7 +452,12 @@ class WooCommerceClient {
     return allPosts;
   }
 
-  async fetchPost(postId: number): Promise<WPPost> {
+  // Returns null when the post is no longer publicly visible, so the caller can
+  // evict it from KV. WordPress answers 401/403 for a scheduled, draft or private
+  // post and 404 once it is gone — it never reveals the status in those cases, so
+  // throwing here would leave the post cached forever. Any other failure (5xx,
+  // network) still throws, so a transient WordPress outage cannot empty the cache.
+  async fetchPost(postId: number): Promise<WPPost | null> {
     const url = `${this.baseUrl}/wp-json/wp/v2/posts/${postId}?_embed`;
 
     const response = await fetch(url, {
@@ -460,6 +465,10 @@ class WooCommerceClient {
         'Content-Type': 'application/json',
       },
     });
+
+    if (response.status === 401 || response.status === 403 || response.status === 404) {
+      return null;
+    }
 
     if (!response.ok) {
       throw new Error(`Failed to fetch post ${postId}: ${response.status}`);
@@ -1485,9 +1494,14 @@ async function syncSinglePost(env: Env, postId: number): Promise<SyncedPost | nu
   try {
     const post = await client.fetchPost(postId);
 
-    // If post is not published, remove from KV
-    if (post.status !== 'publish') {
-      console.log(`Post ${postId} is not published (status: ${post.status}), removing from KV`);
+    // If post is not published, remove from KV.
+    // A null post means WordPress refused to serve it (401/403/404) — i.e. it was
+    // scheduled, drafted, made private or deleted. That is the common case for
+    // "we changed the publishing date", and it must evict just like an explicit
+    // non-publish status would.
+    if (!post || post.status !== 'publish') {
+      const reason = post ? `status: ${post.status}` : 'no longer publicly visible';
+      console.log(`Post ${postId} is not published (${reason}), removing from KV`);
       await deletePost(env, postId);
       return null;
     }
