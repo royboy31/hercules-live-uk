@@ -36,12 +36,22 @@ id = "82f827d101734ce38ccc89629c7ae919"
 binding = "CLIENT_LOGOS_BUCKET"
 bucket_name = "hercules-uk-client-logos"
 
-# Every-minute trigger for the deferred-rebuild flush ONLY.
-# scheduled() gates the full delta sync on FULL_SYNC_CRONS ("0 3 * * *"), so this
-# cron cannot start a sync — it just rebuilds the site when a content change was
-# debounced away. Normally a single KV read.
+# BOTH crons must be listed. Cloudflare REPLACES the worker's registered cron list
+# on every deploy — it does not append — so naming only one here silently
+# unregisters the other.
+#   "0 3 * * *"  -> the daily delta sync. scheduled() runs the sync ONLY for a cron
+#                   in FULL_SYNC_CRONS (src/index.ts), so it must stay registered
+#                   verbatim or the sync becomes unreachable.
+#   "* * * * *"  -> the deferred-rebuild flush. Not in FULL_SYNC_CRONS, so it can
+#                   never start a sync; normally a single KV read.
+# At 03:00 both fire as separate events: the minute one takes the flush branch,
+# the daily one syncs once.
+# Regression this guards against: 4465365 listed only "* * * * *", which dropped
+# the registered "0 3 * * *" and killed the daily sync from 2026-08-05 to 08-08.
+# Verify after deploying by reading /status, NOT this file — the repo shows what
+# the last deploy set, not what is registered.
 [env.production.triggers]
-crons = ["* * * * *"]
+crons = ["* * * * *", "0 3 * * *"]
 
 [env.production.vars]
 WC_STORE_URL = "https://hercules-merchandise.co.uk"
