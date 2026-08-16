@@ -6,6 +6,7 @@ import { checkAddonProducts } from './checks/addon-products.js';
 import { checkPageContent } from './checks/page-content.js';
 import { checkCategories } from './checks/categories.js';
 import { checkSiteQuality } from './checks/site-quality.js';
+import { checkLinks } from './checks/links.js';
 import { generateMarkdownReport } from './report/generator.js';
 import { generateExcelReport } from './report/excel.js';
 import { sendEmailReport } from './report/emailer.js';
@@ -25,6 +26,7 @@ async function runChecksForSite(site: SiteConfig): Promise<CheckResult[]> {
     { name: 'Page Content', fn: checkPageContent },
     { name: 'Categories', fn: checkCategories },
     { name: 'Site Quality', fn: checkSiteQuality },
+    { name: 'Links', fn: checkLinks },
   ];
 
   for (const cat of categories) {
