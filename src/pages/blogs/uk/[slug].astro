@@ -209,8 +209,10 @@ jsonLdSchemas.push(getBreadcrumbSchema([
           <!-- CTA Box -->
           <div class="cta-box">
             <div class="cta-content">
-              <h2 class="cta-heading-main">Number 1</h2>
-              <h3 class="cta-heading-sub">in custom sports merchandise</h3>
+              <h2 class="cta-heading">
+                <span class="cta-heading-main">Number 1</span>
+                <span class="cta-heading-sub">in custom sports merchandise</span>
+              </h2>
               <p class="cta-description">We specialise in the production of custom-designed, personalised sports merchandise such as football scarves, jackets, hoodies, fanwear and teamwear.</p>
               <div class="cta-buttons">
                 <a href="/collections/custom-printed-sportswear/" class="cta-cat-button">
@@ -600,7 +602,12 @@ jsonLdSchemas.push(getBreadcrumbSchema([
     text-align: center;
   }
 
+  .cta-heading {
+    margin: 0;
+  }
+
   .cta-heading-main {
+    display: block;
     font-family: 'Jost', sans-serif;
     font-size: 30px;
     font-weight: 600;
@@ -610,6 +617,7 @@ jsonLdSchemas.push(getBreadcrumbSchema([
   }
 
   .cta-heading-sub {
+    display: block;
     font-family: 'Jost', sans-serif;
     font-size: 30px;
     font-weight: 300;
