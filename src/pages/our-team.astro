@@ -1,0 +1,438 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pageTitle = 'Meet the Team | Hercules Merchandise';
+const pageDescription = 'Meet the people behind Hercules Merchandise — the project managers, designers and developers who guide your custom merchandise project from concept to delivery.';
+
+const team = [
+  {
+    name: 'Lea-Marie',
+    role: 'Project Manager',
+    image: '/images/team/lea-marie.webp',
+    favourite: 'Recycled Cotton Scarf',
+    linkedin: 'https://www.linkedin.com/in/lea-marie-g%C3%B6tze/',
+    bio: "Lea-Marie keeps projects moving smoothly across both the UK and German markets. Organised, approachable and detail-focused, she helps turn customer ideas into the right products while making sure nothing gets missed along the way. She also supports the website by adding new products and keeping product information fresh, clear and useful for customers."
+  },
+  {
+    name: 'Cedric',
+    role: 'Project Manager',
+    image: '/images/team/cedric.webp',
+    favourite: 'HD Football Scarf',
+    linkedin: 'https://www.linkedin.com/in/cedricdeschrijver/',
+    bio: "Cedric makes sure the customer always comes first. Clear, structured and thoughtful in his communication, he takes the time to understand each client's needs and keeps projects moving in the right direction. He also works on improving internal processes, keeping documentation up to date and supporting the marketing strategy so Hercules Merchandise stays sharp, relevant and easy to work with."
+  },
+  {
+    name: 'Gilles',
+    role: 'Project Manager',
+    image: '/images/team/gilles.webp',
+    favourite: 'Retro Football Shirt',
+    linkedin: 'https://www.linkedin.com/in/gillesvandoorne/',
+    bio: "Gilles helps customers turn ideas into clear, realistic merchandise projects. He focuses on understanding what each club, brand or organisation wants to achieve, then guides the project from first idea to final delivery. With a practical eye for design, production and planning, he makes sure customers get advice that is honest, useful and easy to act on."
+  },
+  {
+    name: 'Zhaks',
+    role: 'Designer',
+    image: '/images/team/zhaks.webp',
+    favourite: 'Custom Beanie',
+    linkedin: null,
+    bio: "Zhaks creates merchandise designs for sports clubs, brands and organisations. His work covers everything from scarves and knitwear to packaging, flags and promotional items. He enjoys taking an idea and turning it into a finished product that looks good, works in production and is something people can actually use, wear and enjoy."
+  },
+  {
+    name: 'Dilan',
+    role: 'Designer',
+    image: '/images/team/dilan.webp',
+    favourite: 'Custom Scarf',
+    linkedin: null,
+    bio: "Dilan turns customer ideas into designs that are ready for production. Every product comes with its own challenges, from scarves and football shirts to pennants, towels and other custom merchandise, and he enjoys making sure every detail works before it goes to print. His favourite product is the custom scarf, because it offers so many creative possibilities, from bold supporter colours to detailed woven patterns."
+  },
+  {
+    name: 'Roy',
+    role: 'Developer',
+    image: '/images/team/roy.webp',
+    favourite: 'Custom Football Shirt',
+    linkedin: null,
+    bio: "Roy works on making the Hercules Merchandise website as clear, simple and enjoyable as possible. His goal is that every customer can explore products, understand the available options and see pricing clearly without needing extra help. His favourite product is the custom football shirt, because it brings people together and gives companies, clubs and supporter groups something that instantly feels like their own."
+  }
+];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  pageType="page"
+>
+  <!-- Hero Section -->
+  <section class="team-hero">
+    <div class="container">
+      <div class="team-hero-text">
+        <h1>Meet the Team Behind<br />Hercules Merchandise</h1>
+        <div class="hero-accent"></div>
+        <p>Behind every successful project is a team of people who care about the details. At Hercules Merchandise, you'll work with real humans who guide your project from concept to delivery, combining product knowledge, practical advice and attention to detail.</p>
+        <p>We believe in honest communication, realistic timelines and production-friendly design. Our goal is simple: to make the process easy, transparent and enjoyable while delivering merchandise your community will be proud to wear.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Our Team -->
+  <section class="team-section">
+    <div class="container">
+      <h2 class="section-title">Our Team</h2>
+      <p class="section-intro">The people who guide your project, shape your designs and keep everything moving.</p>
+
+      <div class="team-list">
+        {team.map((member) => (
+          <article class="team-card">
+            <div class="team-photo">
+              <img src={member.image} alt={`${member.name} — ${member.role} at Hercules Merchandise`} width="140" height="140" loading="lazy" />
+            </div>
+            <div class="team-identity">
+              <h3>{member.name}</h3>
+              <p class="team-role">{member.role}</p>
+            </div>
+            <div class="team-bio">
+              <p>{member.bio}</p>
+            </div>
+            <div class="team-meta">
+              <p class="team-favourite"><span>Favourite merch item:</span>{member.favourite}</p>
+              {member.linkedin && (
+                <a class="team-linkedin" href={member.linkedin} target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                  </svg>
+                  LinkedIn
+                </a>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How We Work -->
+  <section class="team-section team-section-alt">
+    <div class="container">
+      <h2 class="section-title">How We Work</h2>
+      <p class="section-intro">We follow a simple, proven process that puts your goals first. We listen, advise and guide you through every decision, so you always know what's happening and why. Our principles keep projects on track and your experience stress-free.</p>
+
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              <line x1="8" y1="9" x2="16" y2="9"></line>
+              <line x1="8" y1="13" x2="13" y2="13"></line>
+            </svg>
+          </div>
+          <h3>Honest Advice</h3>
+          <p>We recommend what works, not just what sounds good. Straightforward advice you can trust.</p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <h3>Attention to Detail</h3>
+          <p>From design checks to delivery planning, we focus on the small things that make a big difference.</p>
+        </div>
+
+        <div class="value-card">
+          <div class="value-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10C99E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+            </svg>
+          </div>
+          <h3>Long-Term Mindset</h3>
+          <p>We build reliable partnerships and care about your success today and for seasons to come.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* Hero Section */
+  .team-hero {
+    background: #EFF4FA;
+    padding: 70px 0;
+  }
+
+  .team-hero-text {
+    max-width: 760px;
+  }
+
+  h1 {
+    font-family: 'Jost', sans-serif;
+    font-size: 48px;
+    font-weight: 600;
+    color: #253461;
+    text-transform: uppercase;
+    line-height: 1.15;
+    margin: 0 0 18px;
+  }
+
+  .hero-accent {
+    width: 70px;
+    height: 4px;
+    background: #10C99E;
+    margin: 0 0 25px;
+  }
+
+  .team-hero-text p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    margin: 0 0 15px;
+  }
+
+  /* Shared Section Styles */
+  .team-section {
+    padding: 70px 0;
+    background: #FFFFFF;
+  }
+
+  .team-section-alt {
+    background: #FAFAFA;
+  }
+
+  .section-title {
+    font-family: 'Jost', sans-serif;
+    font-size: 35px;
+    font-weight: 600;
+    color: #253461;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0 0 15px;
+  }
+
+  .section-intro {
+    font-family: 'Roboto', sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    text-align: center;
+    max-width: 750px;
+    margin: 0 auto;
+  }
+
+  /* Team Cards */
+  .team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 45px;
+  }
+
+  .team-card {
+    display: grid;
+    grid-template-columns: 140px 170px 1fr 220px;
+    gap: 30px;
+    align-items: center;
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .team-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .team-photo img {
+    display: block;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #EFF4FA;
+  }
+
+  .team-identity h3 {
+    font-family: 'Jost', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #253461;
+    text-transform: uppercase;
+    margin: 0 0 5px;
+  }
+
+  .team-role {
+    font-family: 'Jost', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #10C99E;
+    margin: 0;
+  }
+
+  .team-bio p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    color: #5F5F5F;
+    margin: 0;
+  }
+
+  .team-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .team-favourite {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #253461;
+    margin: 0;
+  }
+
+  .team-favourite span {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .team-linkedin {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #469ADC;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .team-linkedin:hover {
+    color: #253461;
+  }
+
+  /* Values Grid */
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 45px;
+  }
+
+  .value-card {
+    background: #FFFFFF;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .value-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .value-icon {
+    margin-bottom: 15px;
+  }
+
+  .value-card h3 {
+    font-family: 'Jost', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #253461;
+    margin: 0 0 12px;
+  }
+
+  .value-card p {
+    font-family: 'Roboto', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #5F5F5F;
+    margin: 0;
+  }
+
+  /* Tablet */
+  @media (max-width: 1024px) {
+    .team-card {
+      grid-template-columns: 120px 1fr;
+      grid-template-rows: auto auto auto;
+      row-gap: 15px;
+    }
+
+    .team-photo img {
+      width: 120px;
+      height: 120px;
+    }
+
+    .team-bio,
+    .team-meta {
+      grid-column: 1 / -1;
+    }
+
+    .values-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .container {
+      padding: 0 20px;
+    }
+
+    .team-hero {
+      padding: 45px 0;
+    }
+
+    h1 {
+      font-size: 30px;
+    }
+
+    .team-hero-text p {
+      font-size: 15px;
+    }
+
+    .team-section {
+      padding: 45px 0;
+    }
+
+    .section-title {
+      font-size: 24px;
+    }
+
+    .section-intro {
+      font-size: 15px;
+    }
+
+    .team-card {
+      grid-template-columns: 1fr;
+      justify-items: center;
+      text-align: center;
+      padding: 25px 20px;
+    }
+
+    .team-photo img {
+      width: 110px;
+      height: 110px;
+    }
+
+    .team-bio,
+    .team-meta {
+      grid-column: auto;
+    }
+
+    .team-meta {
+      align-items: center;
+    }
+  }
+</style>
