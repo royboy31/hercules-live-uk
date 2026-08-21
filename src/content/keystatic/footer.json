@@ -6,6 +6,7 @@
       "heading": "About Us",
       "links": [
         { "label": "About Us", "href": "/about/" },
+        { "label": "Our Team", "href": "/our-team/" },
         { "label": "Blog", "href": "/blogs/uk/" },
         { "label": "Delivery & Returns", "href": "/deliveries-and-returns/" },
         { "label": "Payment Methods", "href": "/payment-methods/" },
