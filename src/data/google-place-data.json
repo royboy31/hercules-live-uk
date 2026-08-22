@@ -1,10 +1,10 @@
 {
   "rating": 5,
-  "reviewCount": 186,
+  "reviewCount": 193,
   "name": "Hercules Merchandise UK",
-  "url": "https://www.google.com/maps/preview/place/Hercules+Merchandise+UK/@47.73855,11.5749774,2683a,13.1y/data=!4m2!3m1!1s0xa13b775f11fdb24d:0x93a56bc6631bafa4",
-  "scrapedAt": "2026-04-22T06:18:01.690Z",
-  "source": "google-maps-preview",
+  "url": "https://www.google.com/maps/place//data=!4m7!3m6!1s0xa13b775f11fdb24d:0x93a56bc6631bafa4!8m2!3d47.73855!4d11.5749774!9m1!1b1",
+  "scrapedAt": "2026-08-22T16:06:36.745Z",
+  "source": "trustindex-richsnippet",
   "reviews": [
     {
       "author": "James Wilson",
