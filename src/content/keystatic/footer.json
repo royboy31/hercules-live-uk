@@ -1,9 +1,15 @@
 {
-  "newsletterHeading": "Interested?",
-  "newsletterDescription": "Be the first to see our latest sports merchandise – Subscribe to our newsletter!",
+  "tagline": "Quality merchandise and apparel for clubs, fans and teams across the UK and beyond.",
+  "resellerHeading": "Reseller or professional club?",
+  "resellerText": "Partner with us and enjoy exclusive pricing, dedicated support and reliable delivery on bulk orders.",
+  "resellerFeatures": [
+    { "icon": "tag", "label": "Exclusive bulk pricing" },
+    { "icon": "headset", "label": "Dedicated account support" }
+  ],
+  "resellerButtonText": "Contact our team",
   "footerColumns": [
     {
-      "heading": "About Us",
+      "heading": "Company",
       "links": [
         { "label": "About Us", "href": "/about/" },
         { "label": "Our Team", "href": "/our-team/" },
@@ -15,6 +21,18 @@
       ]
     },
     {
+      "heading": "Products",
+      "links": [
+        { "label": "Scarves", "href": "/collections/custom-scarves/" },
+        { "label": "Beanies", "href": "/collections/custom-beanies/" },
+        { "label": "Headwear", "href": "/collections/headwear/" },
+        { "label": "Sportswear", "href": "/collections/custom-printed-sportswear/" },
+        { "label": "Pennants", "href": "/collections/custom-pennants/" },
+        { "label": "Accessories", "href": "/collections/accessories/" },
+        { "label": "Tifo", "href": "/collections/tifo/" }
+      ]
+    },
+    {
       "heading": "Sports",
       "links": [
         { "label": "Football", "href": "/collections/football/" },
@@ -22,23 +40,20 @@
         { "label": "Basketball", "href": "/collections/basketball/" },
         { "label": "Running", "href": "/collections/running/" },
         { "label": "Cycling", "href": "/collections/cycling/" },
-        { "label": "Volleyball", "href": "/collections/volleyball/" }
-      ]
-    },
-    {
-      "heading": "Products",
-      "links": [
-        { "label": "Scarves", "href": "/collections/custom-scarves/" },
-        { "label": "Beanies", "href": "/collections/custom-beanies/" },
-        { "label": "Sportswear", "href": "/collections/custom-printed-sportswear/" },
-        { "label": "Pennants", "href": "/collections/custom-pennants/" },
-        { "label": "Accessories", "href": "/collections/accessories/" },
-        { "label": "Tifo", "href": "/collections/tifo/" }
+        { "label": "Volleyball", "href": "/collections/volleyball/" },
+        { "label": "Fitness", "href": "/collections/fitness/" }
       ]
     }
   ],
-  "resellerHeading": "Reseller or professional club?",
-  "resellerText": "We offer bulk discounts.",
+  "helpHeading": "Help / Contact",
+  "followHeading": "Follow us",
+  "socialLinks": [
+    { "platform": "linkedin", "href": "" },
+    { "platform": "instagram", "href": "" },
+    { "platform": "facebook", "href": "" },
+    { "platform": "youtube", "href": "" }
+  ],
+  "contactButtonText": "Contact us",
   "phone": "+442039664881",
   "phoneDisplay": "(+44) 0203 9664881",
   "copyright": "© {YEAR} GBI Ventures Ltd. Trading as Hercules Merchandise. Registered in England & Wales No. 15416150. Registered office: Unit 33, Waterside Schooner Court, 44-48 Wharf Road, London, England, N1 7UX.",

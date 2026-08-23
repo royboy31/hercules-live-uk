@@ -112,8 +112,7 @@ export default config({
       path: 'src/content/keystatic/footer',
       format: { data: 'json' },
       schema: {
-        newsletterHeading: fields.text({ label: 'Newsletter Heading' }),
-        newsletterDescription: fields.text({ label: 'Newsletter Description' }),
+        tagline: fields.text({ label: 'Logo Tagline' }),
         footerColumns: fields.array(
           fields.object({
             heading: fields.text({ label: 'Column Heading' }),
@@ -129,6 +128,24 @@ export default config({
         ),
         resellerHeading: fields.text({ label: 'Reseller Heading' }),
         resellerText: fields.text({ label: 'Reseller Description' }),
+        resellerFeatures: fields.array(
+          fields.object({
+            icon: fields.text({ label: 'Icon (tag | headset)' }),
+            label: fields.text({ label: 'Feature Label' }),
+          }),
+          { label: 'Reseller Features', itemLabel: (props) => props.fields.label.value || 'Untitled' }
+        ),
+        resellerButtonText: fields.text({ label: 'Reseller Button Text' }),
+        helpHeading: fields.text({ label: 'Help Column Heading' }),
+        followHeading: fields.text({ label: 'Follow Us Heading' }),
+        socialLinks: fields.array(
+          fields.object({
+            platform: fields.text({ label: 'Platform (linkedin | instagram | facebook | youtube)' }),
+            href: fields.text({ label: 'Profile URL' }),
+          }),
+          { label: 'Social Links', itemLabel: (props) => props.fields.platform.value || 'Untitled' }
+        ),
+        contactButtonText: fields.text({ label: 'Contact Button Text' }),
         phone: fields.text({ label: 'Phone Number (tel: format)' }),
         phoneDisplay: fields.text({ label: 'Phone Display Text' }),
         copyright: fields.text({ label: 'Copyright Text' }),
