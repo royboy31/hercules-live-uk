@@ -462,10 +462,19 @@ Develop on main → merge to production → GitHub Actions → Cloudflare Pages 
 ```
 
 ### WordPress Changes
+The WordPress install is **not** a git checkout: `httpdocs/` has no `.git`, so a server edit
+exists only on the server and the next upload from an older local copy silently reverts it.
 When making changes on the WordPress server (mu-plugins, theme files, email templates), always:
-1. Create a `.bak-YYYYMMDD` backup before modifying
+1. Create a `.bak-YYYYMMDD` backup before modifying, **outside the document root**
+   (`/var/www/vhosts/hercules-merchandise.co.uk/backups/`). A `.php.bak` left in `wp-content/`
+   is served as plain text to anyone who guesses the URL.
 2. Apply to **both staging and production** servers
-3. Document in the daily progress file
+3. Commit the changed file to `wordpress-plugins/` in this repo, so the change survives someone
+   else editing the same file. See `wordpress-plugins/README.md` for what is tracked and why.
+4. Document in the daily progress file
+
+The conversion-tracking files listed in `wordpress-plugins/README.md` are load-bearing: removing
+one stops a Google Ads or GA4 conversion from being counted without breaking anything visible.
 
 ---
 
