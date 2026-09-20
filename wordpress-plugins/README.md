@@ -17,6 +17,7 @@ Server: `ssh hercules`, docroot `/var/www/vhosts/hercules-merchandise.co.uk/http
 | `pearl-wc-steps-variation/assets/js/quote-form.js` | `wp-content/plugins/pearl-wc-steps-variation/assets/js/quote-form.js` |
 | `pearl-wc-steps-variation/includes/quote-shortcode.php` | `wp-content/plugins/pearl-wc-steps-variation/includes/quote-shortcode.php` |
 | `hercules-category-meta.php` | `wp-content/mu-plugins/hercules-category-meta.php` |
+| `hercules-consent-bridge.php` | `wp-content/mu-plugins/hercules-consent-bridge.php` |
 
 `pearl-wc-steps-variation` is a custom plugin (no `Update URI`, not on wordpress.org), so
 WordPress will never auto-update over these edits. The realistic way to lose them is a manual
@@ -46,3 +47,19 @@ notices.** If you have to touch these files, keep the marked blocks.
 
 Pre-change backups of all four are on the server in
 `/var/www/vhosts/hercules-merchandise.co.uk/backups/tracking-20260920/`.
+
+## Consent bridge, added 2026-09-20
+
+`hercules-consent-bridge.php` is a new mu-plugin. Before it, the served WordPress HTML carried
+no `gtag('consent','default', ...)` at all: the banner asked, the choice was stored in the
+`cmplz_*` cookies, and nothing acted on it, so Google Consent Mode treated storage as granted
+whatever the visitor clicked. The three Complianz consent tags in `GTM-TW5HR72` (61, 47, 48)
+are paused, so the container was not supplying the defaults either.
+
+It declares the denied default at `wp_head` priority 1 (ahead of the container at 10), then
+applies the recorded choice at priority 1000000 and on Complianz's own `cmplz_fire_categories`
+and `cmplz_revoke` events, so a click on the banner takes effect in the same page load.
+
+Verified on production 2026-09-20 in a clean browser profile: default `G100`, Accept produces a
+granted `consent update` in the same page load and GA4 + Ads fire normally, Deny keeps `gcs=G100`
+cookieless pings. **Rollback is deleting the file**; it writes no option and touches nothing else.
