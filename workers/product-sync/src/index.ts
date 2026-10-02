@@ -1039,7 +1039,11 @@ async function deleteProduct(env: Env, productId: number): Promise<void> {
 }
 
 // Sync a single product (for webhook updates)
-async function syncSingleProduct(env: Env, productId: number): Promise<SyncedProduct | null> {
+async function syncSingleProduct(
+  env: Env,
+  productId: number,
+  onIndexUpdated?: () => Promise<void>
+): Promise<SyncedProduct | null> {
   const client = new WooCommerceClient(
     env.WC_STORE_URL,
     env.WC_CONSUMER_KEY,
@@ -1077,6 +1081,11 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     }
   }
 
+  // The slug this product had at its last sync, to clean up after a permalink change
+  const previousSlug: string | null = existingProductStr
+    ? JSON.parse(existingProductStr).slug ?? null
+    : null;
+
   // Save product data to KV BEFORE the image loop so name/price/category updates
   // are committed even if the subrequest limit is hit during image caching.
   await env.PRODUCTS_KV.put(
@@ -1093,6 +1102,36 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
     env.PRODUCTS_KV.delete(`product-config:${product.id}`),
     env.PRODUCTS_KV.delete(`product-config:${product.slug}`),
   ]);
+
+  // Permalink changed: drop the old slug's record and cached images so the old URL
+  // stops serving stale data (the build lists products from the index below).
+  if (previousSlug && previousSlug !== product.slug) {
+    const oldSlugKeys: string[] = [
+      `product:slug:${previousSlug}`,
+      `product-config:${previousSlug}`,
+      `image:${previousSlug}`,
+      `image:${previousSlug}:thumb`,
+    ];
+    for (let i = 1; i <= MAX_GALLERY_IMAGES; i++) {
+      oldSlugKeys.push(`image:${previousSlug}:${i}`);
+      oldSlugKeys.push(`image:${previousSlug}:${i}:thumb`);
+    }
+    await Promise.all(oldSlugKeys.map(key => env.PRODUCTS_KV.delete(key)));
+    console.log(`Slug changed for product ${product.id}: ${previousSlug} -> ${product.slug}, cleared old slug keys`);
+  }
+
+  // Update the index BEFORE the image loop. The image loop can exhaust the Worker's
+  // per-invocation limits on products with many images, which used to kill the run
+  // before the index was written - leaving renamed products listed under their old slug
+  // (their new URL 404ed and the old one showed stale data).
+  await updateProductIndex(env, product, syncedProduct);
+  if (onIndexUpdated) {
+    try {
+      await onIndexUpdated();
+    } catch (error) {
+      console.error(`onIndexUpdated failed for product ${productId}:`, error);
+    }
+  }
 
   // Cache only images not yet in KV (forceRefresh: false).
   // WordPress always generates new filenames on upload, so a genuinely new image
@@ -1151,11 +1190,15 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
 
   console.log(`Synced product ${productId} with ${cachedImageCount} cached images`);
 
-  // Update index
+  return syncedProduct;
+}
+
+// Insert or replace one product's entry in `product:index` (what the Astro build lists).
+async function updateProductIndex(env: Env, product: WCProduct, syncedProduct: SyncedProduct): Promise<void> {
   const indexStr = await env.PRODUCTS_KV.get('product:index');
   if (indexStr) {
     const index = JSON.parse(indexStr);
-    const existingIndex = index.findIndex((p: any) => p.id === productId);
+    const existingIndex = index.findIndex((p: any) => p.id === product.id);
     const getMeta = (key: string) => product.meta_data?.find(m => m.key === key)?.value;
     const newEntry = {
       id: product.id,
@@ -1179,8 +1222,6 @@ async function syncSingleProduct(env: Env, productId: number): Promise<SyncedPro
 
     await env.PRODUCTS_KV.put('product:index', JSON.stringify(index));
   }
-
-  return syncedProduct;
 }
 
 // Transform WC category to synced format
@@ -1949,11 +1990,24 @@ export default {
 
         console.log(`Webhook received: syncing product ${productId}`);
 
-        // Sync the product in background
-        ctx.waitUntil(syncSingleProduct(env, productId));
-
-        // Trigger site rebuild (debounced)
-        ctx.waitUntil(triggerSiteRebuild(env));
+        // Run the sync in the background. The rebuild is triggered as soon as the
+        // index is written (before image caching): image-heavy products can die
+        // inside the image loop and would otherwise never rebuild. The second
+        // trigger after the sync is then a no-op thanks to the 60s debounce
+        // (deferred rebuilds are flushed by the cron).
+        ctx.waitUntil(
+          syncSingleProduct(env, productId, async () => {
+            const early = await triggerSiteRebuild(env);
+            console.log(`Early rebuild result for product ${productId}: ${early.reason}`);
+          })
+            .then(() => {
+              console.log(`Product ${productId} sync complete`);
+              return triggerSiteRebuild(env);
+            })
+            .catch(error => {
+              console.error(`Product ${productId} sync failed:`, error);
+            })
+        );
 
         return new Response(JSON.stringify({ success: true, productId, action: 'sync' }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
