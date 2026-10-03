@@ -127,7 +127,9 @@ if (faqSchema) {
 // Get LCP image URL for preloading (must match the actual src used in CategoryProductCard)
 // Note: No resize params as Cloudflare Image Resizing requires Pro plan
 const lcpImageUrl = validProducts.length > 0
-  ? `${WORKER_URL}/image/${validProducts[0].slug}`
+  ? (validProducts[0].images?.[0]?.id
+      ? `${WORKER_URL}/image/${validProducts[0].slug}?v=${validProducts[0].images[0].id}`
+      : `${WORKER_URL}/image/${validProducts[0].slug}`)
   : null;
 const preloadImages = lcpImageUrl ? [lcpImageUrl] : [];
 ---
@@ -241,7 +243,7 @@ const preloadImages = lcpImageUrl ? [lcpImageUrl] : [];
               <li class="related-product-item">
                 <a href={`/products/${product.slug}/`} class="related-product-link">
                   <img
-                    src={`${WORKER_URL}/image/${product.slug}/0`}
+                    src={`${WORKER_URL}/image/${product.slug}/0${(product.image_v ?? product.images?.[0]?.id) ? `?v=${product.image_v ?? product.images[0].id}` : ''}`}
                     alt={product.name}
                     loading="lazy"
                     width="361"
