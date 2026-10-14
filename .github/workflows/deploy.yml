@@ -120,6 +120,16 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config workers/product-sync/wrangler.toml --env production
 
+      # The edge router decides which requests reach WordPress; without this step a
+      # routing change only ships when someone deploys the worker by hand.
+      - name: Deploy Edge Router
+        if: steps.target.outputs.env == 'production'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --config workers/edge-router/wrangler.toml --env production
+
       - name: Deploy to Staging
         if: steps.target.outputs.env == 'staging'
         uses: cloudflare/wrangler-action@v3
