@@ -367,11 +367,15 @@ export default {
           headers.set('X-Forwarded-Host', url.host);
           headers.set('X-Forwarded-Proto', url.protocol.replace(':', ''));
 
+          // Note: GET/HEAD requests cannot have a body in the Workers runtime.
+          // Exact Online sends GET with Content-Length: 0, which causes a
+          // TypeError if we pass request.body through.
+          const hasBody = request.method !== 'GET' && request.method !== 'HEAD';
           const response = await fetch(
             new Request(targetUrl.toString(), {
               method: request.method,
               headers,
-              body: request.body,
+              body: hasBody ? request.body : undefined,
               redirect: 'manual',
             })
           );
