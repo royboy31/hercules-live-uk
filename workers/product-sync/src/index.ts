@@ -74,6 +74,13 @@ interface WCProduct {
   faq?: Array<{ question: string; answer: string }>;
   // Missive-only flag (exposed by hercules-missive-only plugin)
   missive_only?: boolean;
+  // Unique-product flag (exposed by the hercules-unique-products mu-plugin, Lot 4).
+  // One product is minted per converted order line. It MUST stay published in WooCommerce,
+  // because the Exact connector polls wc/v3/products?status=publish — so it cannot be hidden
+  // by post status and has to be filtered out here instead. Unlike missive_only there is no
+  // include_ escape hatch: a unique product belongs to exactly one order and must never be
+  // offered on the website OR in the CRM product picker.
+  hercules_unique?: boolean;
   // WooCommerce product dates
   date_modified?: string;
 }
@@ -166,6 +173,11 @@ interface SyncedProduct {
   faq: Array<{ question: string; answer: string }>;
   // Number of images successfully cached in KV (for frontend to know how many thumbnails to show)
   cached_image_count: number;
+  // Hidden from the website but still synced. `missive_only` stays visible in the CRM;
+  // `hercules_unique` (Lot 4, one product per converted order line) is hidden everywhere.
+  // Both were already being written here — declaring them clears a pre-existing TS2353.
+  missive_only?: boolean;
+  hercules_unique?: boolean;
   synced_at: string;
 }
 
@@ -812,6 +824,8 @@ async function transformProduct(
     faq: product.faq || [],
     // Missive-only flag (hidden from website, visible in Missive CRM)
     missive_only: product.missive_only || getMeta('_missive_only') === 'yes',
+    // Unique-product flag (Lot 4) — hidden from the website AND from the CRM
+    hercules_unique: product.hercules_unique || getMeta('_hercules_unique') === '1',
     // Will be updated after image caching
     cached_image_count: 0,
     synced_at: new Date().toISOString(),
@@ -962,6 +976,7 @@ async function syncAllProducts(env: Env, offset: number = 0, forceImageRefresh: 
           green_product: greenProduct === '1' || greenProduct === 1 || greenProduct === true,
           made_in_uk: madeInUk === '1' || madeInUk === 1 || madeInUk === true,
           missive_only: p.missive_only || getMeta('_missive_only') === 'yes',
+          hercules_unique: p.hercules_unique || getMeta('_hercules_unique') === '1',
           date_modified: p.date_modified || new Date().toISOString(),
           // First image's attachment id, used by the Astro build to version /image URLs
           image_v: p.images?.[0]?.id,
@@ -1221,6 +1236,7 @@ async function updateProductIndex(env: Env, product: WCProduct, syncedProduct: S
       green_product: syncedProduct.green_product || false,
       made_in_uk: syncedProduct.made_in_uk || false,
       missive_only: product.missive_only || getMeta('_missive_only') === 'yes',
+      hercules_unique: product.hercules_unique || getMeta('_hercules_unique') === '1',
       date_modified: product.date_modified || new Date().toISOString(),
       // First image's attachment id, used by the Astro build to version /image URLs
       image_v: product.images?.[0]?.id,
@@ -2675,6 +2691,12 @@ export default {
       // Parse and add local image URLs
       const product = JSON.parse(productStr);
 
+      // Unique products (Lot 4) are never served, to anyone. No escape hatch: one belongs to
+      // exactly one order. WordPress 404s the same URL on its side via the mu-plugin.
+      if (product.hercules_unique) {
+        return new Response('Product not found', { status: 404 });
+      }
+
       // Block missive-only products from website (CRM passes include_missive=true)
       const includeMissive = url.searchParams.get('include_missive') === 'true';
       if (product.missive_only && !includeMissive) {
@@ -2695,9 +2717,12 @@ export default {
     if (url.pathname === '/products') {
       const indexStr = await env.PRODUCTS_KV.get('product:index');
       const index = indexStr ? JSON.parse(indexStr) : [];
-      // Exclude missive-only products from website listings (CRM passes include_missive=true)
+      // Exclude missive-only products from website listings (CRM passes include_missive=true).
+      // Unique products (Lot 4) are excluded unconditionally — include_missive does NOT reveal
+      // them, because they must never be offered on another quote either.
       const includeMissive = url.searchParams.get('include_missive') === 'true';
-      const filtered = includeMissive ? index : index.filter((p: any) => !p.missive_only);
+      const visible = index.filter((p: any) => !p.hercules_unique);
+      const filtered = includeMissive ? visible : visible.filter((p: any) => !p.missive_only);
       return new Response(JSON.stringify(filtered), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -2713,9 +2738,11 @@ export default {
       }
 
       const index = JSON.parse(indexStr);
-      // Exclude missive-only products from website builds (CRM passes include_missive=true)
+      // Exclude missive-only products from website builds (CRM passes include_missive=true).
+      // Unique products (Lot 4) are excluded unconditionally.
       const includeMissive = url.searchParams.get('include_missive') === 'true';
-      const filtered = includeMissive ? index : index.filter((p: any) => !p.missive_only);
+      const visible = index.filter((p: any) => !p.hercules_unique);
+      const filtered = includeMissive ? visible : visible.filter((p: any) => !p.missive_only);
       const products = await Promise.all(
         filtered.map(async (p: any) => {
           const productStr = await env.PRODUCTS_KV.get(`product:${p.id}`);
@@ -2742,7 +2769,7 @@ export default {
       const index = JSON.parse(indexStr);
       // Filter products by category from index
       const categoryProducts = index.filter((p: any) =>
-        p.categories?.includes(categorySlug) && !p.missive_only
+        p.categories?.includes(categorySlug) && !p.missive_only && !p.hercules_unique
       );
 
       // Fetch full product data for matching products
@@ -3457,6 +3484,8 @@ export default {
           // Filter out test products and products without slugs
           if (!p.slug || p.slug === '') return false;
           if (p.name.toLowerCase().includes('(copy)') || p.name.toLowerCase() === 'test') return false;
+          // Unique products (Lot 4) are never searchable, by anyone
+          if (p.hercules_unique) return false;
           // Exclude missive-only from website search (CRM passes include_missive=true)
           if (!includeMissive && p.missive_only) return false;
           return true;
