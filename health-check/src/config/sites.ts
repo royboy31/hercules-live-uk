@@ -163,7 +163,7 @@ export const SITES: Record<string, SiteConfig> = {
         productId: 4184,
         name: 'Personalisiertes Laufshirt',
         type: 'attribute',
-        minimumQuantity: '5',
+        minimumQuantity: '10',
         expectedAttributeCount: 2,
         expectedAttributes: [
           { slug: 'pa_herkunft-laufshirt', displayType: 'image_selector', termCount: 2, termSlugs: ['produktion-in-china', 'produktion-in-europa'] },
@@ -275,7 +275,7 @@ export const SITES: Record<string, SiteConfig> = {
         productId: 0,
         name: 'Maillot Running Personnalisé',
         type: 'attribute',
-        minimumQuantity: '5',
+        minimumQuantity: '10',
         expectedAttributeCount: 2,
         expectedAttributes: [
           { slug: 'pa_origine-maillot-running', displayType: 'image_selector', termCount: 2, termSlugs: ['production-en-chine', 'production-en-europe'] },
