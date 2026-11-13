@@ -355,24 +355,12 @@ if (jsonLd) {
       '/hmmesure/gtm.js?id='+i+dl;j.onerror=function(){var k=d.createElement(s);k.async=true;k.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(k,f);};f.parentNode.insertBefore(j,f);
       })(window,document,'script','dataLayer','GTM-TW5HR72');
 
-      // Phase 1: Google Ads (direct tag) — 12s or user interaction
+      // Phase 1: hands over to Phase 2 — 12s or user interaction
       function loadPhase1(){
         if(phase1) return;
         phase1=true;
 
-        // 2. Google Ads Conversion Tracking — staggered 2s after GTM
-        setTimeout(function(){
-          inIdle(function(){
-            var gads=document.createElement('script');
-            gads.async=true;
-            gads.src='https://www.googletagmanager.com/gtag/js?id=AW-11156667431';
-            document.head.appendChild(gads);
-            gads.onload=function(){
-              gtag('js', new Date());
-              gtag('config', 'AW-11156667431');
-            };
-          });
-        }, 2000);
+        // Google Ads is no longer loaded here: the container fires the Ads tag (Robin point 3).
 
         // Trigger Phase 2 after Phase 1 settles
         setTimeout(loadPhase2, 4000);
@@ -383,12 +371,7 @@ if (jsonLd) {
         if(phase2) return;
         phase2=true;
 
-        // 3. ClickCease (proxied)
-        inIdle(function(){
-          var cc=document.createElement('script');
-          cc.async=true;cc.src='/cached-scripts/clickcease-stat.js';
-          document.head.appendChild(cc);
-        });
+        // ClickCease is no longer loaded here: the container already loads it (Robin point 6).
 
         // 4. Microsoft Clarity (proxied) — staggered 2s after ClickCease
         setTimeout(function(){
