@@ -557,7 +557,7 @@ const pageDescription = "Contact Hercules Merchandise for custom sports merchand
 </style>
 
 <script>
-  import { pushGenerateLead } from '../lib/tracking';
+  import { enquiryIdFrom, pushGenerateLead } from '../lib/tracking';
 
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('contact-form') as HTMLFormElement;
@@ -599,7 +599,7 @@ const pageDescription = "Contact Hercules Merchandise for custom sports merchand
             throw new Error('Submission failed');
           }
 
-          pushGenerateLead('contact_page');
+          pushGenerateLead('contact_page', await enquiryIdFrom(response), String(formData.get('email') || ''));
 
           messageDiv.className = 'form-message success';
           messageDiv.textContent = 'Thank you for reaching out! We\'ll get back to you within a few hours on working days.';
